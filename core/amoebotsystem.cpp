@@ -88,7 +88,7 @@ void AmoebotSystem::insert(AmoebotParticle* particle)
 
 void AmoebotSystem::insert(Object* object)
 {
-    auto object = objectMap.find(object->_node);
+    auto foundObject = objectMap.find(object->_node);
 
     Q_ASSERT(objectMap.find(object->_node) == objectMap.end());
     Q_ASSERT(particleMap.find(object->_node) == particleMap.end());
