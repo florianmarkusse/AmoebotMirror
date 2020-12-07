@@ -211,10 +211,10 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
     for (int i = 0; i < nrOfHexagons; ++i) {
         insert(new Object(boundNode, true));
         if (i == nrOfHexagons / 2 - 1) {
-            dir = (dir - 1) % 6;
+            dir = dir - 1;
         }
         if (i == nrOfHexagons / 2) {
-            dir = (dir - 1) % 6;
+            dir = 5;
         }
         boundNode = boundNode.nodeInDir(dir);
     }
