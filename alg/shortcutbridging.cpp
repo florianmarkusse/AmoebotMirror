@@ -211,23 +211,27 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
         int dir = originalDir;
         for (int i = 0; i < lineSize+d-1 ; ++i) {
             insert(new Object(boundNode, true));
+            if (d < 2){
+                insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda));
+            }
             boundNode = boundNode.nodeInDir(dir);
         }
         dir = (dir + 5) % 6;
         for (int i = 0; i < d+1; ++i) {
             insert(new Object(boundNode, true));
+            if (d < 2){
+                insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda));
+            }
             boundNode = boundNode.nodeInDir(dir);
         }
         dir = (dir + 5) % 6;
         for (int i = 0; i < lineSize+d; ++i) {
             insert(new Object(boundNode, true));
+            if (d < 2){
+                insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda));
+            }
             boundNode = boundNode.nodeInDir(dir);
         }
-    }
-
-    // Initialize particle system.
-    for (int i = 0; i < numParticles; ++i) {
-        insert(new ShortcutBridgingParticle(Node(i, 0), -1, randDir(), *this, lambda));
     }
 
     // Set up metrics.
