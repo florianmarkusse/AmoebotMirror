@@ -204,19 +204,25 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
     // Draw v on its head.
     // 67 particles + 2 anchor points.
 
-    int dir = 1; // NorthEast
-    int nrOfHexagons = (numParticles - 3) / 2;
-
-    Node boundNode(0, 0);
-    for (int i = 0; i < nrOfHexagons; ++i) {
-        insert(new Object(boundNode, true));
-        if (i == nrOfHexagons / 2 - 1) {
-            dir = dir - 1;
+    int lineSize = (numParticles - 3) / 4;
+    int originalDir = 1; // NorthEast
+    for (int d = 0; d < 10; d++) {
+        Node boundNode(-1*d, 0);
+        int dir = originalDir;
+        for (int i = 0; i < lineSize+d-1 ; ++i) {
+            insert(new Object(boundNode, true));
+            boundNode = boundNode.nodeInDir(dir);
         }
-        if (i == nrOfHexagons / 2) {
-            dir = 5;
+        dir = (dir + 5) % 6;
+        for (int i = 0; i < d+1; ++i) {
+            insert(new Object(boundNode, true));
+            boundNode = boundNode.nodeInDir(dir);
         }
-        boundNode = boundNode.nodeInDir(dir);
+        dir = (dir + 5) % 6;
+        for (int i = 0; i < lineSize+d; ++i) {
+            insert(new Object(boundNode, true));
+            boundNode = boundNode.nodeInDir(dir);
+        }
     }
     /*
     // Initialize particle system.
