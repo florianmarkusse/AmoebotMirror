@@ -224,12 +224,11 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
             boundNode = boundNode.nodeInDir(dir);
         }
     }
-    /*
+
     // Initialize particle system.
     for (int i = 0; i < numParticles; ++i) {
         insert(new ShortcutBridgingParticle(Node(i, 0), -1, randDir(), *this, lambda));
     }
-    */
 
     // Set up metrics.
     _measures.push_back(new ShortcutPerimeterMeasure("Perimeter", 1, *this));
