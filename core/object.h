@@ -10,11 +10,12 @@
 #include "core/node.h"
 
 class Object {
- public:
-  // Constructs an Object entity positioned at the given Node
-  Object(const Node& _node = Node());
+public:
+    // Constructs an Object entity positioned at the given Node
+    Object(const Node& node = Node(), const bool isTraversable = false);
 
-  Node _node;
+    Node _node;
+    bool _isTraversable;
 };
 
-#endif  // AMOEBOTSIM_CORE_OBJECT_H_
+#endif // AMOEBOTSIM_CORE_OBJECT_H_
