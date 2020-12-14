@@ -39,8 +39,9 @@ void ShortcutBridgingParticle::activate()
 
             // If the conditions are satisfied, contract to the new position;
             // otherwise, contract back to the original one.
-            if ((q < pow(lambda, numNbrsAfter - numNbrsBefore))
-                && (checkProp1(S) || checkProp2(S))) {
+            if ((checkProp1(S) || checkProp2(S))) {
+                int pDiff = numNbrsAfter - numNbrsBefore;
+                int gDiff = ...;
                 contractTail();
             } else {
                 contractHead();
