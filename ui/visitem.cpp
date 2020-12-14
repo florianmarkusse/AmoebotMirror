@@ -292,7 +292,7 @@ void VisItem::drawObject(const Object& t)
 {
     auto pos = nodeToWorldCoord(t._node);
     if (t._isTraversable) {
-        glfn->glColor4d(0.5, 0.5, 0.5, 1.0);
+        glfn->glColor4d(0.75, 0.75, 0.75, 1.0);
     } else {
         glfn->glColor4d(0.0, 0.0, 0.0, 1.0);
     }
