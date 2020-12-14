@@ -18,7 +18,7 @@ public:
     // for its local compass, a system which it belongs to, and a bias parameter.
     ShortcutBridgingParticle(const Node head, const int globalTailDir,
         const int orientation, AmoebotSystem& system,
-        const double lambda);
+        const double lambda, const double c);
 
     // Executes one particle activation.
     virtual void activate();
@@ -33,6 +33,8 @@ protected:
     double q;
     int numNbrsBefore;
     bool flag;
+    Node nodeBefore;
+    const double c;
 
 private:
     // Gets a reference to the neighboring particle incident to the specified port

@@ -181,6 +181,32 @@ bool AmoebotParticle::hasObjectAtLabel(int label) const
     return false;
 }
 
+bool AmoebotParticle::hasTraversableObjectAtNode(Node node) const
+{
+    //const Node neighboringNode = nbrNodeReachedViaLabel(label);
+
+    auto object = system.objectMap.find(node);
+
+    if (object != system.objectMap.end()) {
+        return object->second->_isTraversable;
+    }
+
+    return false;
+}
+
+bool AmoebotParticle::hasTraversableObjectAtLabel(int label) const
+{
+    const Node neighboringNode = nbrNodeReachedViaLabel(label);
+
+    auto object = system.objectMap.find(neighboringNode);
+
+    if (object != system.objectMap.end()) {
+        return object->second->_isTraversable;
+    }
+
+    return false;
+}
+
 bool AmoebotParticle::hasObjectNbr() const
 {
     return labelOfFirstObjectNbr() != -1;

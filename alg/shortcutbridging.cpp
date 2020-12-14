@@ -3,12 +3,15 @@
 #include "alg/shortcutbridging.h"
 
 ShortcutBridgingParticle::ShortcutBridgingParticle(const Node head,
-    const int globalTailDir, const int orientation, AmoebotSystem& system, const double lambda)
+    const int globalTailDir, const int orientation, AmoebotSystem& system, const double lambda, const double c)
     : AmoebotParticle(head, globalTailDir, orientation, system)
     , lambda(lambda)
     , q(0)
     , numNbrsBefore(0)
     , flag(false)
+    , nodeBefore(head)
+    , c(c)
+
 {
 }
 
@@ -21,6 +24,7 @@ void ShortcutBridgingParticle::activate()
         if (canExpand(expandDir) && !hasExpNbr()) {
             // Count neighbors in original position and expand.
             numNbrsBefore = nbrCount(uniqueLabels());
+            nodeBefore = head;
             expand(expandDir);
             flag = !hasExpNbr();
         }
@@ -40,9 +44,126 @@ void ShortcutBridgingParticle::activate()
             // If the conditions are satisfied, contract to the new position;
             // otherwise, contract back to the original one.
             if ((checkProp1(S) || checkProp2(S))) {
+
                 int pDiff = numNbrsAfter - numNbrsBefore;
-                int gDiff = ...;
-                contractTail();
+                int deltaP = 0;
+                bool countEmpty = hasNbrAtLabel(tailLabels()[0]);
+                for (int i = 1; i < tailLabels().size(); i++){
+
+                    if(hasNbrAtLabel(tailLabels()[i]) && !hasNbrAtLabel(tailLabels()[i-1]) && !countEmpty){
+                           deltaP++;
+                    }
+
+                    if(!hasNbrAtLabel(tailLabels()[i]) && hasNbrAtLabel(tailLabels()[i-1]) && countEmpty){
+                        deltaP++;
+                    }                    
+                }
+
+                std::vector<int> R1;
+                for (int label :  tailLabels() ) {
+                    if (hasNbrAtLabel(label) && !hasExpHeadAtLabel(label)) {
+                        R1.push_back(label);
+                    }
+                }
+
+                std::vector<int> R2;
+                for (const int label : headLabels()) {
+                    if (hasNbrAtLabel(label) && !hasExpHeadAtLabel(label)) {
+                        R2.push_back(label);
+                    }
+                }
+
+                int sumR = 0;
+                for (const int label : R1){
+                    if(std::find(S.begin(), S.end(), label) == S.end()){
+                        int G = hasTraversableObjectAtLabel(label);
+                        int neighbors = 0;
+                        if(label != 0 && std::find(R1.begin(), R1.end(), label-1) != R1.end()) {
+                            neighbors++;
+                        } else if(label == 0 && std::find(R1.begin(), R1.end(), 9) != R1.end()){
+                            neighbors++;
+                        }
+
+                        if(label != 9 && std::find(R1.begin(), R1.end(), label+1) != R1.end()) {
+                            neighbors++;
+                        } else if(label == 9 && std::find(R1.begin(), R1.end(), 0) != R1.end()){
+                            neighbors++;
+                        }
+
+                        if(neighbors == 2){
+                            sumR -= G;
+                        } else if (neighbors == 0){
+                            sumR += G;
+                        }
+                    }
+                }
+
+                for (const int label : R2){
+                    if(std::find(S.begin(), S.end(), label) == S.end()){
+                        int G = hasTraversableObjectAtLabel(label);
+                        int neighbors = 0;
+                        if(label != 0 && std::find(R2.begin(), R2.end(), label-1) != R2.end()) {
+                            neighbors++;
+                        } else if(label == 0 && std::find(R2.begin(), R2.end(), 9) != R2.end()){
+                            neighbors++;
+                        }
+
+                        if(label != 9 && std::find(R2.begin(), R2.end(), label+1) != R2.end()) {
+                            neighbors++;
+                        } else if(label == 9 && std::find(R2.begin(), R2.end(), 0) != R2.end()){
+                            neighbors++;
+                        }
+
+                        if(neighbors == 2){
+                            sumR += G;
+                        } else if (neighbors == 0){
+                            sumR -= G;
+                        }
+                    } else {
+                        int G = hasTraversableObjectAtLabel(label);
+                        int neighbors1 = 0;
+                        int neighbors2 = 0;
+                        if(label != 0 && std::find(R2.begin(), R2.end(), label-1) != R2.end()) {
+                            neighbors2++;
+                        } else if(label == 0 && std::find(R2.begin(), R2.end(), 9) != R2.end()){
+                            neighbors2++;
+                        }
+
+                        if(label != 9 && std::find(R2.begin(), R2.end(), label+1) != R2.end()) {
+                            neighbors2++;
+                        } else if(label == 9 && std::find(R2.begin(), R2.end(), 0) != R2.end()){
+                            neighbors2++;
+                        }
+
+                        if(label != 0 && std::find(R1.begin(), R1.end(), label-1) != R1.end()) {
+                            neighbors1++;
+                        } else if(label == 0 && std::find(R1.begin(), R1.end(), 9) != R1.end()){
+                            neighbors1++;
+                        }
+
+                        if(label != 9 && std::find(R1.begin(), R1.end(), label+1) != R1.end()) {
+                            neighbors1++;
+                        } else if(label == 9 && std::find(R1.begin(), R1.end(), 0) != R1.end()){
+                            neighbors1++;
+                        }
+
+                        if(neighbors1 == 1){
+                            sumR -= G;
+                        } else if (neighbors2 == 1){
+                            sumR += G;
+                        }
+                    }
+                }
+
+
+                int gDiff = deltaP * (hasTraversableObjectAtNode(head) - hasTraversableObjectAtNode(nodeBefore)) + sumR;
+
+                if(q < pow(lambda, pDiff) + pow(pow(lambda, c-1), gDiff)){
+                    contractTail();
+                } else {
+                    contractHead();
+                }
+                
             } else {
                 contractHead();
             }
@@ -213,7 +334,7 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
         for (int i = 0; i < lineSize+d-1 ; ++i) {
             insert(new Object(boundNode, true));
             if (d < 2){
-                insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda));
+                insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda, c));
             }
             boundNode = boundNode.nodeInDir(dir);
         }
@@ -221,7 +342,7 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
         for (int i = 0; i < d+1; ++i) {
             insert(new Object(boundNode, true));
             if (d < 2){
-                insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda));
+                insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda, c));
             }
             boundNode = boundNode.nodeInDir(dir);
         }
@@ -229,7 +350,7 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
         for (int i = 0; i < lineSize+d; ++i) {
             insert(new Object(boundNode, true));
             if (d < 2){
-                insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda));
+                insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda, c));
             }
             boundNode = boundNode.nodeInDir(dir);
         }
