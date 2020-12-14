@@ -12,10 +12,11 @@
 class Object {
 public:
     // Constructs an Object entity positioned at the given Node
-    Object(const Node& node = Node(), const bool isTraversable = false);
+    Object(const Node& node = Node(), const bool isTraversable = false, const bool anchor = false);
 
     Node _node;
     bool _isTraversable;
+    bool _anchor;
 };
 
 #endif // AMOEBOTSIM_CORE_OBJECT_H_

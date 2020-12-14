@@ -4,7 +4,7 @@
 
 #include "core/object.h"
 
-Object::Object(const Node& node, const bool isTraversable)
-    : _node(node), _isTraversable(isTraversable)
+Object::Object(const Node& node, const bool isTraversable, const bool anchor)
+    : _node(node), _isTraversable(isTraversable), _anchor(anchor)
 {
 }

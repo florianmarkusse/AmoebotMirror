@@ -21,7 +21,7 @@ void ShortcutBridgingParticle::activate()
         int expandDir = randDir(); // Select a random neighboring location.
         q = randDouble(0, 1); // Select a random q in (0,1).
 
-        if (canExpand(expandDir) && !hasExpNbr()) {
+        if (canExpand(expandDir) && !hasExpNbr() && !hasAnchorObjectAtNode(head)) {
             // Count neighbors in original position and expand.
             numNbrsBefore = nbrCount(uniqueLabels());
             nodeBefore = head;
@@ -332,9 +332,14 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
         Node boundNode(-1*d, 0);
         int dir = originalDir;
         for (int i = 0; i < lineSize+d-1 ; ++i) {
-            insert(new Object(boundNode, true));
-            if (d < 2){
+            if(d == 0 && i == 0){
+                insert(new Object(boundNode, true, true));    
                 insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda, c));
+            } else {
+                insert(new Object(boundNode, true));
+                if (d < 2){
+                    insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda, c));
+                }
             }
             boundNode = boundNode.nodeInDir(dir);
         }
@@ -348,9 +353,14 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
         }
         dir = (dir + 5) % 6;
         for (int i = 0; i < lineSize+d; ++i) {
-            insert(new Object(boundNode, true));
-            if (d < 2){
+            if(d == 0 && i == lineSize+d-1){
+                insert(new Object(boundNode, true, true));    
                 insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda, c));
+            } else {
+                insert(new Object(boundNode, true));
+                if (d < 2){
+                    insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda, c));
+                }
             }
             boundNode = boundNode.nodeInDir(dir);
         }

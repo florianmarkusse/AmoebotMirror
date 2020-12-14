@@ -94,6 +94,7 @@ class AmoebotParticle : public LocalParticle, public RandomNumberGenerator {
   bool hasObjectAtLabel(int label) const;
   bool hasTraversableObjectAtNode(Node node) const;
   bool hasTraversableObjectAtLabel(int label) const;
+  bool hasAnchorObjectAtNode(Node node) const;
   bool hasObjectNbr() const;
 
   // Function for returning the label of the first port incident to a

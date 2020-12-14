@@ -194,6 +194,19 @@ bool AmoebotParticle::hasTraversableObjectAtNode(Node node) const
     return false;
 }
 
+bool AmoebotParticle::hasAnchorObjectAtNode(Node node) const
+{
+    //const Node neighboringNode = nbrNodeReachedViaLabel(label);
+
+    auto object = system.objectMap.find(node);
+
+    if (object != system.objectMap.end()) {
+        return object->second->_anchor;
+    }
+
+    return false;
+}
+
 bool AmoebotParticle::hasTraversableObjectAtLabel(int label) const
 {
     const Node neighboringNode = nbrNodeReachedViaLabel(label);
