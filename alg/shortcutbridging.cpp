@@ -158,7 +158,7 @@ void ShortcutBridgingParticle::activate()
 
                 int gDiff = deltaP * (hasTraversableObjectAtNode(head) - hasTraversableObjectAtNode(nodeBefore)) + sumR;
 
-                if(q < pow(lambda, pDiff) + pow(pow(lambda, c-1), gDiff)){
+                if(q < pow(lambda, pDiff) * pow(pow(lambda, c-1), gDiff)){
                     contractTail();
                 } else {
                     contractHead();
