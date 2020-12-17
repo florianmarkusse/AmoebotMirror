@@ -11,6 +11,7 @@
 class ShortcutBridgingParticle : public AmoebotParticle {
     friend class ShortcutBridgingSystem;
     friend class ShortcutPerimeterMeasure;
+    friend class ShortcutGapPerimeterMeasure;
 
 public:
     // Constructs a new particle with a node position for its head, a global
@@ -59,6 +60,7 @@ private:
 
 class ShortcutBridgingSystem : public AmoebotSystem {
     friend class ShortcutPerimeterMeasure;
+    friend class ShortcutGapPerimeterMeasure;
 
 public:
     // Constructs a system of CompressionParticles connected to a randomly
@@ -81,6 +83,19 @@ public:
     // Calculates the perimeter of the system, i.e., the number of edges on the
     // walk around the unique external boundary of the system. Uses the fact
     // that perimeter = (3 * #particles) - (#nearest neighbor pairs) - 3.
+    double calculate() const final;
+
+protected:
+    ShortcutBridgingSystem& _system;
+};
+
+class ShortcutGapPerimeterMeasure : public Measure {
+public:
+    // Constructs a GapPerimeterMeasure by using the parent constructor and adding a
+    // reference to the CompressionSystem being measured.
+    ShortcutGapPerimeterMeasure(const QString name, const unsigned int freq,
+        ShortcutBridgingSystem& system);
+
     double calculate() const final;
 
 protected:

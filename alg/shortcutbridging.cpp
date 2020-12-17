@@ -158,7 +158,7 @@ void ShortcutBridgingParticle::activate()
 
                 int gDiff = deltaP * (hasTraversableObjectAtNode(head) - hasTraversableObjectAtNode(nodeBefore)) + sumR;
 
-                if(q < pow(lambda, pDiff) + pow(pow(lambda, c-1), gDiff)){
+                if(q < pow(lambda, pDiff) * pow(pow(lambda, c-1), gDiff)){
                     contractTail();
                 } else {
                     contractHead();
@@ -368,6 +368,7 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
 
     // Set up metrics.
     _measures.push_back(new ShortcutPerimeterMeasure("Perimeter", 1, *this));
+    _measures.push_back(new ShortcutGapPerimeterMeasure("Gap Perimeter", 1, *this));
 }
 
 bool ShortcutBridgingSystem::hasTerminated() const
@@ -402,4 +403,26 @@ double ShortcutPerimeterMeasure::calculate() const
     }
 
     return (3 * _system.size()) - (numEdges / 2) - 3;
+}
+
+ShortcutGapPerimeterMeasure::ShortcutGapPerimeterMeasure(const QString name, const unsigned int freq, ShortcutBridgingSystem& system)
+    : Measure(name, freq)
+    , _system(system)
+{
+}
+
+double ShortcutGapPerimeterMeasure::calculate() const
+{
+    int gapEdges = 0;
+    for (const auto& p : _system.particles) {
+        auto comp_p = dynamic_cast<ShortcutBridgingParticle*>(p);
+        auto tailLabels = comp_p->isContracted() ? comp_p->uniqueLabels()
+                                                 : comp_p->tailLabels();
+        for (const int label : tailLabels) {
+            if (comp_p->hasNbrAtLabel(label) && !comp_p->hasExpHeadAtLabel(label)) {
+                ++gapEdges;
+            }
+        }
+    }
+    return gapEdges;
 }
