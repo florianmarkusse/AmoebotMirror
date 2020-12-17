@@ -13,6 +13,7 @@
 #include "alg/energysharing.h"
 #include "alg/infobjcoating.h"
 #include "alg/leaderelection.h"
+#include "alg/separation.h"
 #include "alg/shapeformation.h"
 #include "alg/shortcutbridging.h"
 
@@ -314,6 +315,27 @@ void ShortcutBridgingAlg::instantiate(const int numParticles, const double lambd
     }
 }
 
+SeparationAlg::SeparationAlg()
+    : Algorithm("Separation", "separation")
+{
+    addParameter("# Particles", "100");
+    addParameter("Lambda", "4.0");
+    addParameter("Kappa", "4.0");
+};
+
+void SeparationAlg::instantiate(const int numParticles, const double lambda, const double kappa)
+{
+    if (numParticles <= 0) {
+        emit log("# particles must be > 0", true);
+    } else if (lambda <= 0) {
+        emit log("lambda must be > 0", true);
+    } else if (kappa <= 0) {
+        emit log("kappa must be > 0", true);
+    } else {
+        emit setSystem(std::make_shared<SeparationSystem>(numParticles, lambda, kappa));
+    }
+}
+
 AlgorithmList::AlgorithmList()
 {
     // Demo algorithms.
@@ -332,6 +354,8 @@ AlgorithmList::AlgorithmList()
 
     // Shortcut Bridging algorithm.
     _algorithms.push_back(new ShortcutBridgingAlg());
+    // Separation algorithm.
+    _algorithms.push_back(new SeparationAlg());
 }
 
 AlgorithmList::~AlgorithmList()

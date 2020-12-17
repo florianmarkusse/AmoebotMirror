@@ -174,6 +174,17 @@ public slots:
     void instantiate(const int numParticles = 100, const double lambda = 4.0, const double c = 3 / 2);
 };
 
+// Separation algorithm
+class SeparationAlg : public Algorithm {
+    Q_OBJECT
+
+public:
+    SeparationAlg();
+
+public slots:
+    void instantiate(const int numParticles = 100, const double lambda = 4.0, const double kappa = 4.0);
+};
+
 class AlgorithmList {
 public:
     // Constructs a list of algorithms recognized by the simulator (for now, this

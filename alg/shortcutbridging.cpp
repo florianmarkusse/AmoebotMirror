@@ -48,19 +48,19 @@ void ShortcutBridgingParticle::activate()
                 int pDiff = numNbrsAfter - numNbrsBefore;
                 int deltaP = 0;
                 bool countEmpty = hasNbrAtLabel(tailLabels()[0]);
-                for (int i = 1; i < tailLabels().size(); i++){
+                for (int i = 1; i < tailLabels().size(); i++) {
 
-                    if(hasNbrAtLabel(tailLabels()[i]) && !hasNbrAtLabel(tailLabels()[i-1]) && !countEmpty){
-                           deltaP++;
+                    if (hasNbrAtLabel(tailLabels()[i]) && !hasNbrAtLabel(tailLabels()[i - 1]) && !countEmpty) {
+                        deltaP++;
                     }
 
-                    if(!hasNbrAtLabel(tailLabels()[i]) && hasNbrAtLabel(tailLabels()[i-1]) && countEmpty){
+                    if (!hasNbrAtLabel(tailLabels()[i]) && hasNbrAtLabel(tailLabels()[i - 1]) && countEmpty) {
                         deltaP++;
-                    }                    
+                    }
                 }
 
                 std::vector<int> R1;
-                for (int label :  tailLabels() ) {
+                for (int label : tailLabels()) {
                     if (hasNbrAtLabel(label) && !hasExpHeadAtLabel(label)) {
                         R1.push_back(label);
                     }
@@ -74,96 +74,95 @@ void ShortcutBridgingParticle::activate()
                 }
 
                 int sumR = 0;
-                for (const int label : R1){
-                    if(std::find(S.begin(), S.end(), label) == S.end()){
+                for (const int label : R1) {
+                    if (std::find(S.begin(), S.end(), label) == S.end()) {
                         int G = hasTraversableObjectAtLabel(label);
                         int neighbors = 0;
-                        if(label != 0 && std::find(R1.begin(), R1.end(), label-1) != R1.end()) {
+                        if (label != 0 && std::find(R1.begin(), R1.end(), label - 1) != R1.end()) {
                             neighbors++;
-                        } else if(label == 0 && std::find(R1.begin(), R1.end(), 9) != R1.end()){
-                            neighbors++;
-                        }
-
-                        if(label != 9 && std::find(R1.begin(), R1.end(), label+1) != R1.end()) {
-                            neighbors++;
-                        } else if(label == 9 && std::find(R1.begin(), R1.end(), 0) != R1.end()){
+                        } else if (label == 0 && std::find(R1.begin(), R1.end(), 9) != R1.end()) {
                             neighbors++;
                         }
 
-                        if(neighbors == 2){
+                        if (label != 9 && std::find(R1.begin(), R1.end(), label + 1) != R1.end()) {
+                            neighbors++;
+                        } else if (label == 9 && std::find(R1.begin(), R1.end(), 0) != R1.end()) {
+                            neighbors++;
+                        }
+
+                        if (neighbors == 2) {
                             sumR -= G;
-                        } else if (neighbors == 0){
+                        } else if (neighbors == 0) {
                             sumR += G;
                         }
                     }
                 }
 
-                for (const int label : R2){
-                    if(std::find(S.begin(), S.end(), label) == S.end()){
+                for (const int label : R2) {
+                    if (std::find(S.begin(), S.end(), label) == S.end()) {
                         int G = hasTraversableObjectAtLabel(label);
                         int neighbors = 0;
-                        if(label != 0 && std::find(R2.begin(), R2.end(), label-1) != R2.end()) {
+                        if (label != 0 && std::find(R2.begin(), R2.end(), label - 1) != R2.end()) {
                             neighbors++;
-                        } else if(label == 0 && std::find(R2.begin(), R2.end(), 9) != R2.end()){
-                            neighbors++;
-                        }
-
-                        if(label != 9 && std::find(R2.begin(), R2.end(), label+1) != R2.end()) {
-                            neighbors++;
-                        } else if(label == 9 && std::find(R2.begin(), R2.end(), 0) != R2.end()){
+                        } else if (label == 0 && std::find(R2.begin(), R2.end(), 9) != R2.end()) {
                             neighbors++;
                         }
 
-                        if(neighbors == 2){
+                        if (label != 9 && std::find(R2.begin(), R2.end(), label + 1) != R2.end()) {
+                            neighbors++;
+                        } else if (label == 9 && std::find(R2.begin(), R2.end(), 0) != R2.end()) {
+                            neighbors++;
+                        }
+
+                        if (neighbors == 2) {
                             sumR += G;
-                        } else if (neighbors == 0){
+                        } else if (neighbors == 0) {
                             sumR -= G;
                         }
                     } else {
                         int G = hasTraversableObjectAtLabel(label);
                         int neighbors1 = 0;
                         int neighbors2 = 0;
-                        if(label != 0 && std::find(R2.begin(), R2.end(), label-1) != R2.end()) {
+                        if (label != 0 && std::find(R2.begin(), R2.end(), label - 1) != R2.end()) {
                             neighbors2++;
-                        } else if(label == 0 && std::find(R2.begin(), R2.end(), 9) != R2.end()){
-                            neighbors2++;
-                        }
-
-                        if(label != 9 && std::find(R2.begin(), R2.end(), label+1) != R2.end()) {
-                            neighbors2++;
-                        } else if(label == 9 && std::find(R2.begin(), R2.end(), 0) != R2.end()){
+                        } else if (label == 0 && std::find(R2.begin(), R2.end(), 9) != R2.end()) {
                             neighbors2++;
                         }
 
-                        if(label != 0 && std::find(R1.begin(), R1.end(), label-1) != R1.end()) {
+                        if (label != 9 && std::find(R2.begin(), R2.end(), label + 1) != R2.end()) {
+                            neighbors2++;
+                        } else if (label == 9 && std::find(R2.begin(), R2.end(), 0) != R2.end()) {
+                            neighbors2++;
+                        }
+
+                        if (label != 0 && std::find(R1.begin(), R1.end(), label - 1) != R1.end()) {
                             neighbors1++;
-                        } else if(label == 0 && std::find(R1.begin(), R1.end(), 9) != R1.end()){
+                        } else if (label == 0 && std::find(R1.begin(), R1.end(), 9) != R1.end()) {
                             neighbors1++;
                         }
 
-                        if(label != 9 && std::find(R1.begin(), R1.end(), label+1) != R1.end()) {
+                        if (label != 9 && std::find(R1.begin(), R1.end(), label + 1) != R1.end()) {
                             neighbors1++;
-                        } else if(label == 9 && std::find(R1.begin(), R1.end(), 0) != R1.end()){
+                        } else if (label == 9 && std::find(R1.begin(), R1.end(), 0) != R1.end()) {
                             neighbors1++;
                         }
 
-                        if(neighbors1 == 1){
+                        if (neighbors1 == 1) {
                             sumR -= G;
-                        } else if (neighbors2 == 1){
+                        } else if (neighbors2 == 1) {
                             sumR += G;
                         }
                     }
                 }
 
-
                 int gDiff = deltaP * (hasTraversableObjectAtNode(head) - hasTraversableObjectAtNode(nodeBefore)) + sumR;
 
-                if(q < pow(lambda, pDiff) * pow(pow(lambda, c-1), gDiff)){
+                if (q < pow(lambda, pDiff) * pow(pow(lambda, c - 1), gDiff)) {
                     contractTail();
                 } else {
                     contractHead();
                 }
-                
+
             } else {
                 contractHead();
             }
@@ -320,6 +319,7 @@ bool ShortcutBridgingParticle::checkProp2(std::vector<int> S) const
 }
 
 ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, double c)
+    : c(c)
 {
     Q_ASSERT(lambda >= 0);
 
@@ -329,37 +329,37 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
     int lineSize = (numParticles - 3) / 4;
     int originalDir = 1; // NorthEast
     for (int d = 0; d < 10; d++) {
-        Node boundNode(-1*d, 0);
+        Node boundNode(-1 * d, 0);
         int dir = originalDir;
-        for (int i = 0; i < lineSize+d-1 ; ++i) {
-            if(d == 0 && i == 0){
-                insert(new Object(boundNode, true, true));    
-                insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda, c));
+        for (int i = 0; i < lineSize + d - 1; ++i) {
+            if (d == 0 && i == 0) {
+                insert(new Object(boundNode, true, true));
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
             } else {
                 insert(new Object(boundNode, true));
-                if (d < 2){
-                    insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda, c));
+                if (d < 2) {
+                    insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
                 }
             }
             boundNode = boundNode.nodeInDir(dir);
         }
         dir = (dir + 5) % 6;
-        for (int i = 0; i < d+1; ++i) {
+        for (int i = 0; i < d + 1; ++i) {
             insert(new Object(boundNode, true));
-            if (d < 2){
-                insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda, c));
+            if (d < 2) {
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
             }
             boundNode = boundNode.nodeInDir(dir);
         }
         dir = (dir + 5) % 6;
-        for (int i = 0; i < lineSize+d; ++i) {
-            if(d == 0 && i == lineSize+d-1){
-                insert(new Object(boundNode, true, true));    
-                insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda, c));
+        for (int i = 0; i < lineSize + d; ++i) {
+            if (d == 0 && i == lineSize + d - 1) {
+                insert(new Object(boundNode, true, true));
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
             } else {
                 insert(new Object(boundNode, true));
-                if (d < 2){
-                    insert(new ShortcutBridgingParticle(Node(boundNode.x,boundNode.y), -1, randDir(), *this, lambda, c));
+                if (d < 2) {
+                    insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
                 }
             }
             boundNode = boundNode.nodeInDir(dir);
@@ -369,6 +369,7 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
     // Set up metrics.
     _measures.push_back(new ShortcutPerimeterMeasure("Perimeter", 1, *this));
     _measures.push_back(new ShortcutGapPerimeterMeasure("Gap Perimeter", 1, *this));
+    _measures.push_back(new WeightedPerimeterMeasure("Weighted measure", 1, *this));
 }
 
 bool ShortcutBridgingSystem::hasTerminated() const
@@ -414,15 +415,63 @@ ShortcutGapPerimeterMeasure::ShortcutGapPerimeterMeasure(const QString name, con
 double ShortcutGapPerimeterMeasure::calculate() const
 {
     int gapEdges = 0;
+
     for (const auto& p : _system.particles) {
         auto comp_p = dynamic_cast<ShortcutBridgingParticle*>(p);
         auto tailLabels = comp_p->isContracted() ? comp_p->uniqueLabels()
                                                  : comp_p->tailLabels();
+        Node positionNode = comp_p->isContracted() ? comp_p->head
+                                                   : comp_p->tail();
+        auto particlePair = _system.objectMap.find(positionNode);
+
         for (const int label : tailLabels) {
             if (comp_p->hasNbrAtLabel(label) && !comp_p->hasExpHeadAtLabel(label)) {
-                ++gapEdges;
+
+                Node nodeNeighbour = comp_p->nbrAtLabel(label).isContracted()
+                    ? comp_p->nbrAtLabel(label).head
+                    : comp_p->nbrAtLabel(label).tail();
+                auto neighbourPair = _system.objectMap.find(nodeNeighbour);
+                // Land
+                if (particlePair != _system.objectMap.end()) {
+                    // Land-Land: do nothing
+                    if (neighbourPair != _system.objectMap.end()) {
+                    }
+                    // Land-Gap: Add 1
+                    else {
+                        gapEdges++;
+                    }
+                }
+                // Gap
+                else {
+                    // Gap-Land: Add 1
+                    if (neighbourPair != _system.objectMap.end()) {
+                        gapEdges++;
+                    }
+                    // Gap-Gap: add 2
+                    else {
+                        gapEdges += 2;
+                    }
+                }
             }
         }
     }
-    return gapEdges;
+    auto res = gapEdges * _system.c / 4;
+    return res;
+}
+
+WeightedPerimeterMeasure::WeightedPerimeterMeasure(const QString name, const unsigned int freq, ShortcutBridgingSystem& system)
+    : Measure(name, freq)
+    , _system(system)
+{
+}
+
+double WeightedPerimeterMeasure::calculate() const
+{
+    size_t size = _system.getMeasure("Perimeter")._history.size();
+    double perimeter = _system.getMeasure("Perimeter")._history[size - 1];
+
+    size = _system.getMeasure("Gap Perimeter")._history.size();
+    double gapPerimeter = _system.getMeasure("Gap Perimeter")._history[size - 1];
+
+    return perimeter + (_system.c - 1) * gapPerimeter;
 }

@@ -12,6 +12,7 @@ class ShortcutBridgingParticle : public AmoebotParticle {
     friend class ShortcutBridgingSystem;
     friend class ShortcutPerimeterMeasure;
     friend class ShortcutGapPerimeterMeasure;
+    friend class WeightedPerimeterMeasure;
 
 public:
     // Constructs a new particle with a node position for its head, a global
@@ -61,6 +62,7 @@ private:
 class ShortcutBridgingSystem : public AmoebotSystem {
     friend class ShortcutPerimeterMeasure;
     friend class ShortcutGapPerimeterMeasure;
+    friend class WeightedPerimeterMeasure;
 
 public:
     // Constructs a system of CompressionParticles connected to a randomly
@@ -71,6 +73,8 @@ public:
 
     // Because this algorithm never terminates, this simply returns false.
     virtual bool hasTerminated() const;
+
+    const double c;
 };
 
 class ShortcutPerimeterMeasure : public Measure {
@@ -102,6 +106,15 @@ protected:
     ShortcutBridgingSystem& _system;
 };
 
-// class GapMeasure
+class WeightedPerimeterMeasure : public Measure {
+public:
+    WeightedPerimeterMeasure(const QString name, const unsigned int freq,
+        ShortcutBridgingSystem& system);
+
+    double calculate() const final;
+
+protected:
+    ShortcutBridgingSystem& _system;
+};
 
 #endif // AMOEBOTSIM_ALG_SHORTCUTBRIDGING_H_

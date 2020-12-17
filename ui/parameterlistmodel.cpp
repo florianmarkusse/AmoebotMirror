@@ -108,7 +108,12 @@ void ParameterListModel::createSystem(QString algName)
         dynamic_cast<ShapeFormationAlg*>(alg)->instantiate(params[0].toInt(), params[1].toDouble(), params[2]);
     } else if (signature == "shortcutbridging") {
         dynamic_cast<ShortcutBridgingAlg*>(alg)->instantiate(params[0].toInt(), params[1].toDouble(), params[2].toDouble());
-    } else {
-        Q_ASSERT(false); // An unrecognized signature has been entered.
+    } else if (signature == "shortcutbridging") {
+        dynamic_cast<SeparationAlg*>(alg)->instantiate(params[0].toInt(), params[1].toDouble(), params[2].toDouble());
     }
+}
+else
+{
+    Q_ASSERT(false); // An unrecognized signature has been entered.
+}
 }
