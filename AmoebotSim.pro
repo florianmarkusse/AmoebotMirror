@@ -17,6 +17,7 @@ HEADERS += \
     alg/energyshape.h \
     alg/energysharing.h \
     alg/infobjcoating.h \
+    alg/separation.h \
     alg/shapeformation.h \
     alg/shortcutbridging.h \
     core/amoebotparticle.h \
@@ -48,6 +49,7 @@ SOURCES += \
     alg/energyshape.cpp \
     alg/energysharing.cpp \
     alg/infobjcoating.cpp \
+    alg/separation.cpp \
     alg/shapeformation.cpp \
     alg/shortcutbridging.cpp \
     core/amoebotparticle.cpp \
