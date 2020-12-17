@@ -19,7 +19,7 @@ void SeparationParticle::activate()
 
 QString SeparationParticle::inspectionText() const
 {
-    String text;
+    QString text;
     text += "Global Info:\n";
     text += "  head: (" + QString::number(head.x) + ", "
         + QString::number(head.y) + ")\n";
@@ -46,9 +46,9 @@ QString SeparationParticle::inspectionText() const
 int SeparationParticle::headMarkColor() const
 {
     switch (team) {
-    case Color::Red:
+    case Team::Red:
         return 0xff0000;
-    case Color::Blue:
+    case Team::Blue:
         return 0x0000ff;
     }
 
@@ -213,7 +213,7 @@ SeparationSystem::SeparationSystem(int numParticles, double lambda, double kappa
         }
 
         // With probability 1 - holeProb, add a new particle at the candidate node.
-        if (randBool(1.0 - holeProb)) {
+        if (randBool(1.0 - 0.1)) {
             insert(new SeparationParticle(randCand, -1, randDir(), *this,
                 lambda, kappa, static_cast<Team>(rand() % 2)));
             occupied.insert(randCand);
