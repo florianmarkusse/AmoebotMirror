@@ -406,6 +406,46 @@ void ShortcutBridgingSystem::drawVGeneric(int numParticles, double lambda, doubl
             boundNode = boundNode.nodeInDir(dir);
         }
     }
+
+    // Draw obstacle
+    if (obstacle) {
+        insert(new Object(Node(2,lineSize-4)));
+        insert(new Object(Node(2,lineSize-5)));
+        insert(new Object(Node(3,lineSize-5)));
+    }
+
+    // Draw big island
+    if (bigIslands) {
+        for (int i = 3; i < lineSize - 2; i++) {
+            for (int h = lineSize - 3 - i; h >= 0 && h >= 0; h--) {
+                insert(new Object(Node(i,h), true));
+            }
+        }
+    }
+
+    // Draw small islands
+    if (smallIslands) {
+        // Top island
+        for (int i = 3; i < 6; i++) {
+            for (int h = lineSize - 3 - i; h >= lineSize - 8 && h >= 0; h--) {
+                insert(new Object(Node(i,h), true));
+            }
+        }
+
+        // Left second layer island
+        for (int i = 3; i < 6; i++) {
+            for (int h = lineSize - 7 - i; h >= lineSize - 12 && h >= 0; h--) {
+                insert(new Object(Node(i,h), true));
+            }
+        }
+
+        // Right second layer island
+        for (int i = 7; i < 10; i++) {
+            for (int h = lineSize - 3 - i; h >= lineSize - 12 && h >= 0; h--) {
+                insert(new Object(Node(i,h), true));
+            }
+        }
+    }
 }
 
 void ShortcutBridgingSystem::drawV(int numParticles, double lambda, double c)
