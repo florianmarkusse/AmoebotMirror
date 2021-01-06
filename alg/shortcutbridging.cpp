@@ -330,8 +330,8 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
     case Shape::Z:
         drawZ(numParticles, lambda, c);
         break;
-    case Shape::Circle:
-        drawCircle(numParticles, lambda, c);
+    case Shape::Hexagon:
+        drawHexagon(numParticles, lambda, c);
     }
 
     // Set up metrics.
@@ -439,8 +439,27 @@ void ShortcutBridgingSystem::drawZ(int numParticles, double lambda, double c)
     }
 }
 
-void ShortcutBridgingSystem::drawCircle(int numParticles, double lambda, double c)
+void ShortcutBridgingSystem::drawHexagon(int numParticles, double lambda, double c)
 {
+    int x = 2;
+    int result = 6 * x + 6 * (x - 1);
+    while (result < numParticles) {
+        x++;
+        result = 6 * x + 6 * (x - 1);
+    }
+
+    for (int i = 0; i < 6; i++) {
+        Node node(0, 0 - i);
+        for (int j = 0; j < 6; j++) {
+            for (int z = 0; z < x - 1 + i; z++) {
+                insert(new Object(node, true));
+                if (i < 2) {
+                    insert(new ShortcutBridgingParticle(Node(node.x, node.y), -1, randDir(), *this, lambda, c));
+                }
+                node = node.nodeInDir(j);
+            }
+        }
+    }
 }
 
 ShortcutPerimeterMeasure::ShortcutPerimeterMeasure(const QString name, const unsigned int freq, ShortcutBridgingSystem& system)

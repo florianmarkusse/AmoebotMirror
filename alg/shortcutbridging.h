@@ -68,7 +68,7 @@ public:
     enum Shape {
         V,
         Z,
-        Circle,
+        Hexagon,
         VBigIsland,
         VSmallIslands,
         VTopObstacle,
@@ -88,7 +88,7 @@ public:
 private:
     void drawV(int numParticles, double lambda, double c);
     void drawZ(int numParticles, double lambda, double c);
-    void drawCircle(int numParticles, double lambda, double c);
+    void drawHexagon(int numParticles, double lambda, double c);
 
     void drawObstacles(int numParticles, double lambda, double c);
     void drawIslands(int numParticles, double lambda, double c);
