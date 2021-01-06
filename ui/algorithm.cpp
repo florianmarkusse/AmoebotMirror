@@ -311,8 +311,8 @@ void ShortcutBridgingAlg::instantiate(const int numParticles, const double lambd
         emit log("lambda must be >= 0", true);
     } else if (c < 1) {
         emit log("c must be >= 1", true);
-    } else if (shape < 0 || shape > 2) {
-        emit log("shape must be 0<=shape<=2", true);
+    } else if (shape < 0 || shape > 6) {
+        emit log("shape must be 0<=shape<=6", true);
     } else {
         emit setSystem(std::make_shared<ShortcutBridgingSystem>(numParticles, lambda, c, static_cast<ShortcutBridgingSystem::Shape>(shape)));
     }

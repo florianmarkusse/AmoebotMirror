@@ -72,6 +72,7 @@ public:
         VBigIsland,
         VSmallIslands,
         VTopObstacle,
+        HexagonIsland,
     };
 
     // Constructs a system of CompressionParticles connected to a randomly
@@ -88,7 +89,9 @@ public:
 private:
     void drawV(int numParticles, double lambda, double c);
     void drawZ(int numParticles, double lambda, double c);
+
     void drawHexagon(int numParticles, double lambda, double c);
+    void drawHexagonIsland(int numParticles);
 
     void drawObstacles(int numParticles, double lambda, double c);
     void drawIslands(int numParticles, double lambda, double c);

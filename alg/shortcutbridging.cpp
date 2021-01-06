@@ -332,6 +332,9 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
         break;
     case Shape::Hexagon:
         drawHexagon(numParticles, lambda, c);
+    case Shape::HexagonIsland:
+        drawHexagon(numParticles, lambda, c);
+        drawHexagonIsland(numParticles);
     }
 
     // Set up metrics.
@@ -423,7 +426,7 @@ void ShortcutBridgingSystem::drawZ(int numParticles, double lambda, double c)
         }
     }
     // Draw last leg to form Z
-    Node startNode(lineSize+10,0);
+    Node startNode(lineSize + 10, 0);
     for (int d = 0; d < 10; d++) {
         Node boundNode(startNode.x, startNode.y);
         for (int i = 0; i < lineSize - d + 9; i++) {
@@ -452,6 +455,26 @@ void ShortcutBridgingSystem::drawHexagon(int numParticles, double lambda, double
                     insert(new ShortcutBridgingParticle(Node(node.x, node.y), -1, randDir(), *this, lambda, c));
                 }
                 node = node.nodeInDir(j);
+            }
+        }
+    }
+}
+
+void ShortcutBridgingSystem::drawHexagonIsland(int numParticles)
+{
+    int x = 2;
+    int result = 6 * x + 6 * (x - 1);
+    while (result < numParticles) {
+        x++;
+        result = 6 * x + 6 * (x - 1);
+    }
+
+    for (int i = 0; i < 6; i++) {
+        Node node(0, 2 + i);
+        for (int j = 0; j < 2; j++) {
+            for (int z = 0; z < x - 5 - j; z++) {
+                insert(new Object(node, true));
+                node = node.nodeInDir(i);
             }
         }
     }
