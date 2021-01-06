@@ -332,9 +332,11 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
         break;
     case Shape::Hexagon:
         drawHexagon(numParticles, lambda, c);
+        break;
     case Shape::HexagonIsland:
         drawHexagon(numParticles, lambda, c);
         drawHexagonIsland(numParticles);
+        break;
     }
 
     // Set up metrics.
@@ -427,7 +429,7 @@ void ShortcutBridgingSystem::drawZ(int numParticles, double lambda, double c)
             boundNode = boundNode.nodeInDir(dir);
         }
         dir = (dir + 5) % 6;
-        int middleLine = (lineSize - 8)/2 + d + 1;
+        int middleLine = (lineSize - 8) / 2 + d + 1;
         for (int i = 0; i < lineSize + d; ++i) {
             insert(new Object(boundNode, true));
             if (i < middleLine && d < 2) {
