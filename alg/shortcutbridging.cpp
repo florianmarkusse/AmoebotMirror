@@ -337,6 +337,15 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
         drawHexagon(numParticles, lambda, c);
         drawHexagonIsland(numParticles);
         break;
+    case Shape::VSmallIslands:
+        drawVSmallIslands(numParticles, lambda, c);
+        break;
+    case Shape::VBigIsland:
+        drawVBigIslands(numParticles, lambda, c);
+        break;
+    case Shape::VObstacle:
+        drawVObstacles(numParticles, lambda, c);
+        break;
     }
 
     // Set up metrics.
@@ -356,8 +365,7 @@ bool ShortcutBridgingSystem::hasTerminated() const
     return false;
 }
 
-void ShortcutBridgingSystem::drawV(int numParticles, double lambda, double c)
-{
+void ShortcutBridgingSystem::drawVGeneric(int numParticles, double lambda, double c, bool smallIslands, bool bigIslands, bool obstacle) {
     // Draw v on its head.
     int lineSize = (numParticles - 3) / 4;
     int originalDir = 1; // NorthEast
@@ -398,6 +406,23 @@ void ShortcutBridgingSystem::drawV(int numParticles, double lambda, double c)
             boundNode = boundNode.nodeInDir(dir);
         }
     }
+}
+
+void ShortcutBridgingSystem::drawV(int numParticles, double lambda, double c)
+{
+    drawVGeneric(numParticles, lambda, c, false, false, false);
+}
+
+void ShortcutBridgingSystem::drawVObstacles(int numParticles, double lambda, double c) {
+    drawVGeneric(numParticles, lambda, c, false, false, true);
+}
+
+void ShortcutBridgingSystem::drawVSmallIslands(int numParticles, double lambda, double c) {
+    drawVGeneric(numParticles, lambda, c, true, false, false);
+}
+
+void ShortcutBridgingSystem::drawVBigIslands(int numParticles, double lambda, double c) {
+    drawVGeneric(numParticles, lambda, c, false, true, false);
 }
 
 void ShortcutBridgingSystem::drawZ(int numParticles, double lambda, double c)

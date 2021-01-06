@@ -71,7 +71,7 @@ public:
         Hexagon,
         VBigIsland,
         VSmallIslands,
-        VTopObstacle,
+        VObstacle,
         HexagonIsland,
     };
 
@@ -87,14 +87,16 @@ public:
     const double c;
 
 private:
-    void drawV(int numParticles, double lambda, double c);
     void drawZ(int numParticles, double lambda, double c);
 
     void drawHexagon(int numParticles, double lambda, double c);
     void drawHexagonIsland(int numParticles);
 
-    void drawObstacles(int numParticles, double lambda, double c);
-    void drawIslands(int numParticles, double lambda, double c);
+    void drawVGeneric(int numParticles, double lambda, double c, bool smallIslands, bool bigIslands, bool obstacle);
+    void drawV(int numParticles, double lambda, double c);
+    void drawVObstacles(int numParticles, double lambda, double c);
+    void drawVSmallIslands(int numParticles, double lambda, double c);
+    void drawVBigIslands(int numParticles, double lambda, double c);
 };
 
 class ShortcutPerimeterMeasure : public Measure {
