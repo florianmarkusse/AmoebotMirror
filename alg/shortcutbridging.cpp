@@ -397,6 +397,46 @@ void ShortcutBridgingSystem::drawV(int numParticles, double lambda, double c)
 
 void ShortcutBridgingSystem::drawZ(int numParticles, double lambda, double c)
 {
+    // Draw v on its head.
+    int lineSize = (numParticles - 3) / 4;
+    int originalDir = 1; // NorthEast
+    for (int d = 0; d < 10; d++) {
+        Node boundNode(-1 * d, 0);
+        int dir = originalDir;
+        for (int i = 0; i < lineSize + d - 1; ++i) {
+            if (d == 0 && i == 0) {
+                insert(new Object(boundNode, true, true));
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+            } else {
+                insert(new Object(boundNode, true));
+                if (d < 2) {
+                    insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+                }
+            }
+            boundNode = boundNode.nodeInDir(dir);
+        }
+        dir = (dir + 5) % 6;
+        for (int i = 0; i < d + 1; ++i) {
+            insert(new Object(boundNode, true));
+            if (d < 2) {
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+            }
+            boundNode = boundNode.nodeInDir(dir);
+        }
+        dir = (dir + 5) % 6;
+        for (int i = 0; i < lineSize + d; ++i) {
+            if (d == 0 && i == lineSize + d - 1) {
+                insert(new Object(boundNode, true, true));
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+            } else {
+                insert(new Object(boundNode, true));
+                if (d < 2) {
+                    insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+                }
+            }
+            boundNode = boundNode.nodeInDir(dir);
+        }
+    }
 }
 
 void ShortcutBridgingSystem::drawCircle(int numParticles, double lambda, double c)
