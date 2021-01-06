@@ -14,7 +14,39 @@ SeparationParticle::SeparationParticle(const Node head, const int globalTailDir,
 
 void SeparationParticle::activate()
 {
-    //do iets
+    if (isContracted()) {
+    int expandDir = randDir();  // Select a random neighboring location.
+    q = randDouble(0, 1);        // Select a random q in (0,1).
+
+    if (canExpand(expandDir) && !hasExpNbr()) {
+      // Count neighbors in original position and expand.
+      numNbrsBefore = nbrCount(uniqueLabels());
+      expand(expandDir);
+      flag = !hasExpNbr();
+    }
+  } else {  // isExpanded().
+    if (!flag || numNbrsBefore == 5) {
+      contractHead();
+    } else {
+      // Count neighbors in new position and compute the set S.
+      int numNbrsAfter = nbrCount(headLabels());
+      std::vector<int> S;
+      for (const int label : {headLabels()[4], tailLabels()[4]}) {
+        if (hasNbrAtLabel(label) && !hasExpHeadAtLabel(label)) {
+          S.push_back(label);
+        }
+      }
+
+      // If the conditions are satisfied, contract to the new position;
+      // otherwise, contract back to the original one.
+      if ((q < pow(lambda, numNbrsAfter - numNbrsBefore))
+          && (checkProp1(S) || checkProp2(S))) {
+        contractTail();
+      } else {
+        contractHead();
+      }
+    }
+  }
 }
 
 QString SeparationParticle::inspectionText() const

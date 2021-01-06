@@ -1,9 +1,8 @@
 
-
 #include "alg/shortcutbridging.h"
 
 ShortcutBridgingParticle::ShortcutBridgingParticle(const Node head,
-    const int globalTailDir, const int orientation, AmoebotSystem& system, const double lambda, const double c)
+    const int globalTailDir, const int orientation, AmoebotSystem& system, const double lambda, const double c, bool terminate)
     : AmoebotParticle(head, globalTailDir, orientation, system)
     , lambda(lambda)
     , q(0)
@@ -11,6 +10,7 @@ ShortcutBridgingParticle::ShortcutBridgingParticle(const Node head,
     , flag(false)
     , nodeBefore(head)
     , c(c)
+    , terminate(terminate)
 
 {
 }
@@ -21,6 +21,10 @@ void ShortcutBridgingParticle::activate()
         int expandDir = randDir(); // Select a random neighboring location.
         q = randDouble(0, 1); // Select a random q in (0,1).
 
+        if(hasAnchorObjectAtNode(head)){
+            terminate = true;
+        }
+
         if (canExpand(expandDir) && !hasExpNbr() && !hasAnchorObjectAtNode(head)) {
             // Count neighbors in original position and expand.
             numNbrsBefore = nbrCount(uniqueLabels());
@@ -30,6 +34,7 @@ void ShortcutBridgingParticle::activate()
         }
     } else { // isExpanded().
         if (!flag || numNbrsBefore == 5) {
+            terminate = true;
             contractHead();
         } else {
             // Count neighbors in new position and compute the set S.
@@ -157,6 +162,12 @@ void ShortcutBridgingParticle::activate()
 
                 int gDiff = deltaP * (hasTraversableObjectAtNode(head) - hasTraversableObjectAtNode(nodeBefore)) + sumR;
 
+                if(pow(lambda, pDiff) * pow(pow(lambda, c - 1), gDiff) < 0.01){
+                    terminate = true;
+                } else {
+                    terminate = false;
+                }
+
                 if (q < pow(lambda, pDiff) * pow(pow(lambda, c - 1), gDiff)) {
                     contractTail();
                 } else {
@@ -164,6 +175,7 @@ void ShortcutBridgingParticle::activate()
                 }
 
             } else {
+                terminate = true;
                 contractHead();
             }
         }
@@ -226,7 +238,6 @@ int ShortcutBridgingParticle::nbrCount(std::vector<int> labels) const
             ++numNbrs;
         }
     }
-
     return numNbrs;
 }
 
@@ -343,12 +354,18 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
 bool ShortcutBridgingSystem::hasTerminated() const
 {
 #ifdef QT_DEBUG
-    if (!isConnected(particles)) {
+   /* if (!isConnected(particles)) {
         return true;
+    }*/
+    for(auto particle : particles) {
+        auto comp_p = dynamic_cast<ShortcutBridgingParticle*>(particle);
+        if(!comp_p->terminate){
+            return false;
+        }
     }
 #endif
 
-    return false;
+    return true;
 }
 
 void ShortcutBridgingSystem::drawV(int numParticles, double lambda, double c)
