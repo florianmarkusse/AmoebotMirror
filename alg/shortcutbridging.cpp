@@ -475,7 +475,11 @@ void ShortcutBridgingSystem::drawHexagon(int numParticles, double lambda, double
         Node node(0, 0 - i);
         for (int j = 0; j < 6; j++) {
             for (int z = 0; z < x - 1 + i; z++) {
-                insert(new Object(node, true));
+                if (i == 1 && (j == 2 || j == 5) && z == 0) {
+                    insert(new Object(node, true, true));
+                } else {
+                    insert(new Object(node, true));
+                }
                 if (i < 2) {
                     insert(new ShortcutBridgingParticle(Node(node.x, node.y), -1, randDir(), *this, lambda, c));
                 }
@@ -494,15 +498,17 @@ void ShortcutBridgingSystem::drawHexagonIsland(int numParticles)
         result = 6 * x + 6 * (x - 1);
     }
 
-    for (int i = 0; i < 6; i++) {
-        Node node(0, 2 + i);
-        for (int j = 0; j < 2; j++) {
-            for (int z = 0; z < x - 5 - j; z++) {
+    for (int i = 0; i < x - 4; i++) {
+        Node node(0, 3 + i);
+        for (int j = 0; j < 6; j++) {
+            for (int z = 0; z < x - 4 - i; z++) {
                 insert(new Object(node, true));
-                node = node.nodeInDir(i);
+                node = node.nodeInDir(j);
             }
         }
     }
+
+    insert(new Object(Node(0, 3 + x - 4), true));
 }
 
 ShortcutPerimeterMeasure::ShortcutPerimeterMeasure(const QString name, const unsigned int freq, ShortcutBridgingSystem& system)
