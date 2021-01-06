@@ -401,27 +401,42 @@ void ShortcutBridgingSystem::drawV(int numParticles, double lambda, double c)
 void ShortcutBridgingSystem::drawZ(int numParticles, double lambda, double c)
 {
     // Draw v on its head.
-    int lineSize = (numParticles - 3) / 4;
+    int lineSize = (numParticles - 13) / 6;
     int originalDir = 1; // NorthEast
     for (int d = 0; d < 10; d++) {
         Node boundNode(-1 * d, 0);
         int dir = originalDir;
         for (int i = 0; i < lineSize + d - 1; ++i) {
-            if (d == 0 && i == 0) {
+            if (d == 1 && i == 0) {
                 insert(new Object(boundNode, true, true));
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
             } else {
                 insert(new Object(boundNode, true));
+                if (d < 2) {
+                    insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+                }
             }
             boundNode = boundNode.nodeInDir(dir);
         }
         dir = (dir + 5) % 6;
         for (int i = 0; i < d + 1; ++i) {
             insert(new Object(boundNode, true));
+            if (d < 2) {
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+            }
             boundNode = boundNode.nodeInDir(dir);
         }
         dir = (dir + 5) % 6;
+        int middleLine = (lineSize - 8)/2 + d + 1;
         for (int i = 0; i < lineSize + d; ++i) {
             insert(new Object(boundNode, true));
+            if (i < middleLine && d < 2) {
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+            } else if (i > middleLine - 3 && i < middleLine && d >= 2) {
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+            } else if (i >= middleLine && i < lineSize - 8 + d && d > 7) {
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+            }
             boundNode = boundNode.nodeInDir(dir);
         }
     }
@@ -430,7 +445,15 @@ void ShortcutBridgingSystem::drawZ(int numParticles, double lambda, double c)
     for (int d = 0; d < 10; d++) {
         Node boundNode(startNode.x, startNode.y);
         for (int i = 0; i < lineSize - d + 9; i++) {
-            insert(new Object(boundNode, true));
+            if (d == 8 && i == lineSize - d + 8) {
+                insert(new Object(boundNode, true, true));
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+            } else {
+                insert(new Object(boundNode, true));
+                if (d > 7) {
+                    insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+                }
+            }
             boundNode = boundNode.nodeInDir(1);
         }
         startNode = startNode.nodeInDir(2);
