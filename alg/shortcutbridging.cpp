@@ -343,6 +343,20 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
         break;
     case Shape::Hexagon:
         drawHexagon(numParticles, lambda, c);
+        break;
+    case Shape::HexagonIsland:
+        drawHexagon(numParticles, lambda, c);
+        drawHexagonIsland(numParticles);
+        break;
+    case Shape::VSmallIslands:
+        drawVSmallIslands(numParticles, lambda, c);
+        break;
+    case Shape::VBigIsland:
+        drawVBigIslands(numParticles, lambda, c);
+        break;
+    case Shape::VObstacle:
+        drawVObstacles(numParticles, lambda, c);
+        break;
     }
 
     // Set up metrics.
@@ -368,8 +382,7 @@ bool ShortcutBridgingSystem::hasTerminated() const
     return true;
 }
 
-void ShortcutBridgingSystem::drawV(int numParticles, double lambda, double c)
-{
+void ShortcutBridgingSystem::drawVGeneric(int numParticles, double lambda, double c, bool smallIslands, bool bigIslands, bool obstacle) {
     // Draw v on its head.
     int lineSize = (numParticles - 3) / 4;
     int originalDir = 1; // NorthEast
@@ -410,41 +423,121 @@ void ShortcutBridgingSystem::drawV(int numParticles, double lambda, double c)
             boundNode = boundNode.nodeInDir(dir);
         }
     }
+
+    // Draw obstacle
+    if (obstacle) {
+        insert(new Object(Node(2,lineSize-4)));
+        insert(new Object(Node(2,lineSize-5)));
+        insert(new Object(Node(3,lineSize-5)));
+    }
+
+    // Draw big island
+    if (bigIslands) {
+        for (int i = 3; i < lineSize - 2; i++) {
+            for (int h = lineSize - 3 - i; h >= 0 && h >= 0; h--) {
+                insert(new Object(Node(i,h), true));
+            }
+        }
+    }
+
+    // Draw small islands
+    if (smallIslands) {
+        // Top island
+        for (int i = 3; i < 6; i++) {
+            for (int h = lineSize - 3 - i; h >= lineSize - 8 && h >= 0; h--) {
+                insert(new Object(Node(i,h), true));
+            }
+        }
+
+        // Left second layer island
+        for (int i = 3; i < 6; i++) {
+            for (int h = lineSize - 7 - i; h >= lineSize - 12 && h >= 0; h--) {
+                insert(new Object(Node(i,h), true));
+            }
+        }
+
+        // Right second layer island
+        for (int i = 7; i < 10; i++) {
+            for (int h = lineSize - 3 - i; h >= lineSize - 12 && h >= 0; h--) {
+                insert(new Object(Node(i,h), true));
+            }
+        }
+    }
+}
+
+void ShortcutBridgingSystem::drawV(int numParticles, double lambda, double c)
+{
+    drawVGeneric(numParticles, lambda, c, false, false, false);
+}
+
+void ShortcutBridgingSystem::drawVObstacles(int numParticles, double lambda, double c) {
+    drawVGeneric(numParticles, lambda, c, false, false, true);
+}
+
+void ShortcutBridgingSystem::drawVSmallIslands(int numParticles, double lambda, double c) {
+    drawVGeneric(numParticles, lambda, c, true, false, false);
+}
+
+void ShortcutBridgingSystem::drawVBigIslands(int numParticles, double lambda, double c) {
+    drawVGeneric(numParticles, lambda, c, false, true, false);
 }
 
 void ShortcutBridgingSystem::drawZ(int numParticles, double lambda, double c)
 {
     // Draw v on its head.
-    int lineSize = (numParticles - 3) / 4;
+    int lineSize = (numParticles - 13) / 6;
     int originalDir = 1; // NorthEast
     for (int d = 0; d < 10; d++) {
         Node boundNode(-1 * d, 0);
         int dir = originalDir;
         for (int i = 0; i < lineSize + d - 1; ++i) {
-            if (d == 0 && i == 0) {
+            if (d == 1 && i == 0) {
                 insert(new Object(boundNode, true, true));
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
             } else {
                 insert(new Object(boundNode, true));
+                if (d < 2) {
+                    insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+                }
             }
             boundNode = boundNode.nodeInDir(dir);
         }
         dir = (dir + 5) % 6;
         for (int i = 0; i < d + 1; ++i) {
             insert(new Object(boundNode, true));
+            if (d < 2) {
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+            }
             boundNode = boundNode.nodeInDir(dir);
         }
         dir = (dir + 5) % 6;
+        int middleLine = (lineSize - 8) / 2 + d + 1;
         for (int i = 0; i < lineSize + d; ++i) {
             insert(new Object(boundNode, true));
+            if (i < middleLine && d < 2) {
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+            } else if (i > middleLine - 3 && i < middleLine && d >= 2) {
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+            } else if (i >= middleLine && i < lineSize - 8 + d && d > 7) {
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+            }
             boundNode = boundNode.nodeInDir(dir);
         }
     }
     // Draw last leg to form Z
-    Node startNode(lineSize+10,0);
+    Node startNode(lineSize + 10, 0);
     for (int d = 0; d < 10; d++) {
         Node boundNode(startNode.x, startNode.y);
         for (int i = 0; i < lineSize - d + 9; i++) {
-            insert(new Object(boundNode, true));
+            if (d == 8 && i == lineSize - d + 8) {
+                insert(new Object(boundNode, true, true));
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+            } else {
+                insert(new Object(boundNode, true));
+                if (d > 7) {
+                    insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+                }
+            }
             boundNode = boundNode.nodeInDir(1);
         }
         startNode = startNode.nodeInDir(2);
@@ -464,7 +557,11 @@ void ShortcutBridgingSystem::drawHexagon(int numParticles, double lambda, double
         Node node(0, 0 - i);
         for (int j = 0; j < 6; j++) {
             for (int z = 0; z < x - 1 + i; z++) {
-                insert(new Object(node, true));
+                if (i == 1 && (j == 2 || j == 5) && z == 0) {
+                    insert(new Object(node, true, true));
+                } else {
+                    insert(new Object(node, true));
+                }
                 if (i < 2) {
                     insert(new ShortcutBridgingParticle(Node(node.x, node.y), -1, randDir(), *this, lambda, c));
                 }
@@ -472,6 +569,28 @@ void ShortcutBridgingSystem::drawHexagon(int numParticles, double lambda, double
             }
         }
     }
+}
+
+void ShortcutBridgingSystem::drawHexagonIsland(int numParticles)
+{
+    int x = 2;
+    int result = 6 * x + 6 * (x - 1);
+    while (result < numParticles) {
+        x++;
+        result = 6 * x + 6 * (x - 1);
+    }
+
+    for (int i = 0; i < x - 4; i++) {
+        Node node(0, 3 + i);
+        for (int j = 0; j < 6; j++) {
+            for (int z = 0; z < x - 4 - i; z++) {
+                insert(new Object(node, true));
+                node = node.nodeInDir(j);
+            }
+        }
+    }
+
+    insert(new Object(Node(0, 3 + x - 4), true));
 }
 
 ShortcutPerimeterMeasure::ShortcutPerimeterMeasure(const QString name, const unsigned int freq, ShortcutBridgingSystem& system)
