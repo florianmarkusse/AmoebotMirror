@@ -65,16 +65,33 @@ class ShortcutBridgingSystem : public AmoebotSystem {
     friend class WeightedPerimeterMeasure;
 
 public:
+    enum Shape {
+        V,
+        Z,
+        Circle,
+        VBigIsland,
+        VSmallIslands,
+        VTopObstacle,
+    };
+
     // Constructs a system of CompressionParticles connected to a randomly
     // generated surface (with no tunnels). Takes an optionally specified size
     // (#particles) and a bias parameter. A bias above 2 + sqrt(2) will provably
     // yield compression; a bias below 2.17 will provably yield expansion.
-    ShortcutBridgingSystem(int numParticles = 100, double lambda = 4.0, double c = 3 / 2);
+    ShortcutBridgingSystem(int numParticles = 100, double lambda = 4.0, double c = 3 / 2, Shape shape = Shape::V);
 
     // Because this algorithm never terminates, this simply returns false.
     virtual bool hasTerminated() const;
 
     const double c;
+
+private:
+    void drawV(int numParticles, double lambda, double c);
+    void drawZ(int numParticles, double lambda, double c);
+    void drawCircle(int numParticles, double lambda, double c);
+
+    void drawObstacles(int numParticles, double lambda, double c);
+    void drawIslands(int numParticles, double lambda, double c);
 };
 
 class ShortcutPerimeterMeasure : public Measure {

@@ -318,14 +318,42 @@ bool ShortcutBridgingParticle::checkProp2(std::vector<int> S) const
     }
 }
 
-ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, double c)
+ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, double c, Shape shape)
     : c(c)
 {
     Q_ASSERT(lambda >= 0);
 
-    // Draw v on its head.
-    // 67 particles + 2 anchor points.
+    switch (shape) {
+    case Shape::V:
+        drawV(numParticles, lambda, c);
+        break;
+    case Shape::Z:
+        drawZ(numParticles, lambda, c);
+        break;
+    case Shape::Circle:
+        drawCircle(numParticles, lambda, c);
+    }
 
+    // Set up metrics.
+    _measures.push_back(new ShortcutPerimeterMeasure("Perimeter", 1, *this));
+    _measures.push_back(new ShortcutGapPerimeterMeasure("Gap Perimeter", 1, *this));
+    _measures.push_back(new WeightedPerimeterMeasure("Weighted measure", 1, *this));
+}
+
+bool ShortcutBridgingSystem::hasTerminated() const
+{
+#ifdef QT_DEBUG
+    if (!isConnected(particles)) {
+        return true;
+    }
+#endif
+
+    return false;
+}
+
+void ShortcutBridgingSystem::drawV(int numParticles, double lambda, double c)
+{
+    // Draw v on its head.
     int lineSize = (numParticles - 3) / 4;
     int originalDir = 1; // NorthEast
     for (int d = 0; d < 10; d++) {
@@ -365,22 +393,14 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
             boundNode = boundNode.nodeInDir(dir);
         }
     }
-
-    // Set up metrics.
-    _measures.push_back(new ShortcutPerimeterMeasure("Perimeter", 1, *this));
-    _measures.push_back(new ShortcutGapPerimeterMeasure("Gap Perimeter", 1, *this));
-    _measures.push_back(new WeightedPerimeterMeasure("Weighted measure", 1, *this));
 }
 
-bool ShortcutBridgingSystem::hasTerminated() const
+void ShortcutBridgingSystem::drawZ(int numParticles, double lambda, double c)
 {
-#ifdef QT_DEBUG
-    if (!isConnected(particles)) {
-        return true;
-    }
-#endif
+}
 
-    return false;
+void ShortcutBridgingSystem::drawCircle(int numParticles, double lambda, double c)
+{
 }
 
 ShortcutPerimeterMeasure::ShortcutPerimeterMeasure(const QString name, const unsigned int freq, ShortcutBridgingSystem& system)

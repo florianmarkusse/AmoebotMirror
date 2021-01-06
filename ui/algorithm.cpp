@@ -300,9 +300,10 @@ ShortcutBridgingAlg::ShortcutBridgingAlg()
     addParameter("# Particles", "100");
     addParameter("Lambda", "4.0");
     addParameter("c", "1.5");
+    addParameter("Shape", "0");
 };
 
-void ShortcutBridgingAlg::instantiate(const int numParticles, const double lambda, const double c)
+void ShortcutBridgingAlg::instantiate(const int numParticles, const double lambda, const double c, int shape)
 {
     if (numParticles <= 0) {
         emit log("# particles must be > 0", true);
@@ -310,8 +311,10 @@ void ShortcutBridgingAlg::instantiate(const int numParticles, const double lambd
         emit log("lambda must be >= 0", true);
     } else if (c < 1) {
         emit log("c must be >= 1", true);
+    } else if (shape < 0 || shape > 2) {
+        emit log("shape must be 0<=shape<=2", true);
     } else {
-        emit setSystem(std::make_shared<ShortcutBridgingSystem>(numParticles, lambda, c));
+        emit setSystem(std::make_shared<ShortcutBridgingSystem>(numParticles, lambda, c, static_cast<ShortcutBridgingSystem::Shape>(shape)));
     }
 }
 

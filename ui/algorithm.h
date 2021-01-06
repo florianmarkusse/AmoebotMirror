@@ -171,7 +171,7 @@ public:
     ShortcutBridgingAlg();
 
 public slots:
-    void instantiate(const int numParticles = 100, const double lambda = 4.0, const double c = 3 / 2);
+    void instantiate(const int numParticles = 100, const double lambda = 4.0, const double c = 3 / 2, int shape = 0);
 };
 
 // Separation algorithm
