@@ -20,7 +20,7 @@ public:
     // for its local compass, a system which it belongs to, and a bias parameter.
     SeparationParticle(const Node head, const int globalTailDir,
         const int orientation, AmoebotSystem& system,
-        const double lambda, const double kappa, const Team team);
+        const double lambda, const double kappa, Team team);
 
     // Executes one particle activation.
     virtual void activate();
@@ -36,9 +36,10 @@ protected:
     // Particle memory.
     const double lambda;
     const double kappa;
-    const Team team;
+    Team team;
     double q;
     int numNbrsBefore;
+    int numNbrsTeamBefore;
     bool flag;
     Node nodeBefore;
 
@@ -57,6 +58,7 @@ private:
     // Counts the number of neighbors in the labeled positions. Note: this
     // implicitly assumes all neighbors are unique, as none are expanded.
     int nbrCount(std::vector<int> labels) const;
+    int nbrCountTeam(std::vector<int> labels, Team team) const;
 
     // Functions for checking Properties 1 and 2 of the compression algorithm.
     bool checkProp1(std::vector<int> S) const;

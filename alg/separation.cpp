@@ -1,12 +1,13 @@
 #include "separation.h"
 
-SeparationParticle::SeparationParticle(const Node head, const int globalTailDir, const int orientation, AmoebotSystem& system, const double lambda, const double kappa, const Team team)
+SeparationParticle::SeparationParticle(const Node head, const int globalTailDir, const int orientation, AmoebotSystem& system, const double lambda, const double kappa, Team team)
     : AmoebotParticle(head, globalTailDir, orientation, system)
     , lambda(lambda)
     , kappa(kappa)
     , team(team)
     , q(0)
     , numNbrsBefore(0)
+    , numNbrsTeamBefore(0)
     , flag(false)
     , nodeBefore(head)
 {
@@ -21,8 +22,30 @@ void SeparationParticle::activate()
     if (canExpand(expandDir) && !hasExpNbr()) {
       // Count neighbors in original position and expand.
       numNbrsBefore = nbrCount(uniqueLabels());
+      numNbrsTeamBefore = nbrCountTeam(uniqueLabels(), team);
       expand(expandDir);
       flag = !hasExpNbr();
+    } 
+    //Swap operation
+    else if (!hasExpNbr() && nbrAtLabel(expandDir).team != team) {
+        int PnumNbr = nbrCountTeam(uniqueLabels(), team);
+        Team otherTeam = Blue;
+        if(team == Blue){
+            otherTeam = Red;
+        }
+        int PnumNrbOther = nbrCountTeam(uniqueLabels(), otherTeam) -1;
+
+        SeparationParticle neighbour = nbrAtLabel(expandDir);
+
+        int QnumNrb = neighbour.nbrCountTeam(uniqueLabels(), neighbour.team);
+        int QnumNrbOther = neighbour.nbrCountTeam(uniqueLabels(), team) -1;
+
+        if (q < pow(kappa, QnumNrbOther - PnumNbr + PnumNrbOther - QnumNrb)){
+            neighbour.team = team;
+            team = otherTeam;            
+        }
+
+
     }
   } else {  // isExpanded().
     if (!flag || numNbrsBefore == 5) {
@@ -30,6 +53,7 @@ void SeparationParticle::activate()
     } else {
       // Count neighbors in new position and compute the set S.
       int numNbrsAfter = nbrCount(headLabels());
+      int numNbrsTeamAfter = nbrCountTeam(headLabels(), team);
       std::vector<int> S;
       for (const int label : {headLabels()[4], tailLabels()[4]}) {
         if (hasNbrAtLabel(label) && !hasExpHeadAtLabel(label)) {
@@ -39,7 +63,7 @@ void SeparationParticle::activate()
 
       // If the conditions are satisfied, contract to the new position;
       // otherwise, contract back to the original one.
-      if ((q < pow(lambda, numNbrsAfter - numNbrsBefore))
+      if ((q < pow(lambda, numNbrsAfter - numNbrsBefore) * pow(kappa, numNbrsTeamAfter - numNbrsTeamBefore))
           && (checkProp1(S) || checkProp2(S))) {
         contractTail();
       } else {
@@ -108,6 +132,7 @@ bool SeparationParticle::hasExpNbr() const
     return false;
 }
 
+
 bool SeparationParticle::hasExpHeadAtLabel(const int label) const
 {
     return hasNbrAtLabel(label) && nbrAtLabel(label).isExpanded()
@@ -119,6 +144,18 @@ int SeparationParticle::nbrCount(std::vector<int> labels) const
     int numNbrs = 0;
     for (const int label : labels) {
         if (hasNbrAtLabel(label) && !hasExpHeadAtLabel(label)) {
+            ++numNbrs;
+        }
+    }
+
+    return numNbrs;
+}
+
+int SeparationParticle::nbrCountTeam(std::vector<int> labels, Team team) const
+{
+    int numNbrs = 0;
+    for (const int label : labels) {
+        if (hasNbrAtLabel(label) && !hasExpHeadAtLabel(label) && nbrAtLabel(label).team == team) {
             ++numNbrs;
         }
     }
