@@ -398,7 +398,7 @@ void ShortcutBridgingSystem::drawV(int numParticles, double lambda, double c)
 void ShortcutBridgingSystem::drawZ(int numParticles, double lambda, double c)
 {
     // Draw v on its head.
-    int lineSize = (numParticles - 3) / 4;
+    int lineSize = (numParticles - 13) / 6;
     int originalDir = 1; // NorthEast
     for (int d = 0; d < 10; d++) {
         Node boundNode(-1 * d, 0);
