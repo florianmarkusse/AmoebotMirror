@@ -21,7 +21,7 @@ void ShortcutBridgingParticle::activate()
         int expandDir = randDir(); // Select a random neighboring location.
         q = randDouble(0, 1); // Select a random q in (0,1).
 
-        if(hasAnchorObjectAtNode(head)){
+        if (hasAnchorObjectAtNode(head)) {
             terminate = true;
         }
 
@@ -162,7 +162,7 @@ void ShortcutBridgingParticle::activate()
 
                 int gDiff = deltaP * (hasTraversableObjectAtNode(head) - hasTraversableObjectAtNode(nodeBefore)) + sumR;
 
-                if(pow(lambda, pDiff) * pow(pow(lambda, c - 1), gDiff) < 0.01){
+                if (pow(lambda, pDiff) * pow(pow(lambda, c - 1), gDiff) < 0.01) {
                     terminate = true;
                 } else {
                     terminate = false;
@@ -367,22 +367,18 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
 
 bool ShortcutBridgingSystem::hasTerminated() const
 {
-#ifdef QT_DEBUG
-   /* if (!isConnected(particles)) {
-        return true;
-    }*/
-    for(auto particle : particles) {
+    for (auto particle : particles) {
         auto comp_p = dynamic_cast<ShortcutBridgingParticle*>(particle);
-        if(!comp_p->terminate){
+        if (!comp_p->terminate) {
             return false;
         }
     }
-#endif
 
     return true;
 }
 
-void ShortcutBridgingSystem::drawVGeneric(int numParticles, double lambda, double c, bool smallIslands, bool bigIslands, bool obstacle) {
+void ShortcutBridgingSystem::drawVGeneric(int numParticles, double lambda, double c, bool smallIslands, bool bigIslands, bool obstacle)
+{
     // Draw v on its head.
     int lineSize = (numParticles - 3) / 4;
     int originalDir = 1; // NorthEast
@@ -426,16 +422,16 @@ void ShortcutBridgingSystem::drawVGeneric(int numParticles, double lambda, doubl
 
     // Draw obstacle
     if (obstacle) {
-        insert(new Object(Node(2,lineSize-4)));
-        insert(new Object(Node(2,lineSize-5)));
-        insert(new Object(Node(3,lineSize-5)));
+        insert(new Object(Node(2, lineSize - 4)));
+        insert(new Object(Node(2, lineSize - 5)));
+        insert(new Object(Node(3, lineSize - 5)));
     }
 
     // Draw big island
     if (bigIslands) {
         for (int i = 3; i < lineSize - 2; i++) {
             for (int h = lineSize - 3 - i; h >= 0 && h >= 0; h--) {
-                insert(new Object(Node(i,h), true));
+                insert(new Object(Node(i, h), true));
             }
         }
     }
@@ -445,21 +441,21 @@ void ShortcutBridgingSystem::drawVGeneric(int numParticles, double lambda, doubl
         // Top island
         for (int i = 3; i < 6; i++) {
             for (int h = lineSize - 3 - i; h >= lineSize - 8 && h >= 0; h--) {
-                insert(new Object(Node(i,h), true));
+                insert(new Object(Node(i, h), true));
             }
         }
 
         // Left second layer island
         for (int i = 3; i < 6; i++) {
             for (int h = lineSize - 7 - i; h >= lineSize - 12 && h >= 0; h--) {
-                insert(new Object(Node(i,h), true));
+                insert(new Object(Node(i, h), true));
             }
         }
 
         // Right second layer island
         for (int i = 7; i < 10; i++) {
             for (int h = lineSize - 3 - i; h >= lineSize - 12 && h >= 0; h--) {
-                insert(new Object(Node(i,h), true));
+                insert(new Object(Node(i, h), true));
             }
         }
     }
@@ -470,15 +466,18 @@ void ShortcutBridgingSystem::drawV(int numParticles, double lambda, double c)
     drawVGeneric(numParticles, lambda, c, false, false, false);
 }
 
-void ShortcutBridgingSystem::drawVObstacles(int numParticles, double lambda, double c) {
+void ShortcutBridgingSystem::drawVObstacles(int numParticles, double lambda, double c)
+{
     drawVGeneric(numParticles, lambda, c, false, false, true);
 }
 
-void ShortcutBridgingSystem::drawVSmallIslands(int numParticles, double lambda, double c) {
+void ShortcutBridgingSystem::drawVSmallIslands(int numParticles, double lambda, double c)
+{
     drawVGeneric(numParticles, lambda, c, true, false, false);
 }
 
-void ShortcutBridgingSystem::drawVBigIslands(int numParticles, double lambda, double c) {
+void ShortcutBridgingSystem::drawVBigIslands(int numParticles, double lambda, double c)
+{
     drawVGeneric(numParticles, lambda, c, false, true, false);
 }
 
