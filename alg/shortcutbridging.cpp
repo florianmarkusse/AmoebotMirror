@@ -1,5 +1,6 @@
 
 #include "alg/shortcutbridging.h"
+#include <iostream>
 
 ShortcutBridgingParticle::ShortcutBridgingParticle(const Node head,
     const int globalTailDir, const int orientation, AmoebotSystem& system, const double lambda, const double c, bool terminate)
@@ -11,19 +12,47 @@ ShortcutBridgingParticle::ShortcutBridgingParticle(const Node head,
     , nodeBefore(head)
     , c(c)
     , terminate(terminate)
-
+    , OGDir(0)
+    , itFlag(false)
+    , preDir(-1)
+    , termCount(0)
 {
 }
 
 void ShortcutBridgingParticle::activate()
 {
     if (isContracted()) {
-        int expandDir = randDir(); // Select a random neighboring location.
-        q = randDouble(0, 1); // Select a random q in (0,1).
-
-        if(hasAnchorObjectAtNode(head)){
-            terminate = true;
+        if(!itFlag){
+            OGDir = randDir(); // Select a random neighboring location.
+            itFlag = true;
         }
+
+        //increase direction counter
+        preDir += 1;
+        int expandDir = -1;
+
+        if(preDir == 6){
+            // We have checked termination for all possible extentions, so continue with original random direction
+            expandDir = OGDir;
+
+            preDir = -1; //Reset preDir for next movement
+            itFlag = false; // Reset iteration flag for next movement
+            // set terminate based on termination of all possible moves, if all moves satisfy termination condition then set terminate to true
+            if( termCount == 6){
+                terminate = true;
+            } else {
+                terminate = false;
+            }
+            termCount = 0; //Reset termination counter
+        } else {
+            // We are iterating over all direction, so use preDir as direction and check termination
+            expandDir = preDir; // Select the next neighboring location
+            if(hasAnchorObjectAtNode(head) || !canExpand(expandDir) || hasExpNbr()){
+                termCount += 1;
+            }
+        }
+        
+        q = randDouble(0, 1); // Select a random q in (0,1).
 
         if (canExpand(expandDir) && !hasExpNbr() && !hasAnchorObjectAtNode(head)) {
             // Count neighbors in original position and expand.
@@ -32,154 +61,189 @@ void ShortcutBridgingParticle::activate()
             expand(expandDir);
             flag = !hasExpNbr();
         }
+        
     } else { // isExpanded().
-        if (!flag || numNbrsBefore == 5) {
-            terminate = true;
+        if(preDir == -1){
+            // Do the expanded stuff as you would normally do it for the algorithm
+            if (!flag || numNbrsBefore == 5) {
             contractHead();
-        } else {
-            // Count neighbors in new position and compute the set S.
-            int numNbrsAfter = nbrCount(headLabels());
-            std::vector<int> S;
-            for (const int label : { headLabels()[4], tailLabels()[4] }) {
-                if (hasNbrAtLabel(label) && !hasExpHeadAtLabel(label)) {
-                    S.push_back(label);
-                }
-            }
-
-            // If the conditions are satisfied, contract to the new position;
-            // otherwise, contract back to the original one.
-            if ((checkProp1(S) || checkProp2(S))) {
-
-                int pDiff = numNbrsAfter - numNbrsBefore;
-                int deltaP = 0;
-                bool countEmpty = hasNbrAtLabel(tailLabels()[0]);
-                for (int i = 1; i < tailLabels().size(); i++) {
-
-                    if (hasNbrAtLabel(tailLabels()[i]) && !hasNbrAtLabel(tailLabels()[i - 1]) && !countEmpty) {
-                        deltaP++;
-                    }
-
-                    if (!hasNbrAtLabel(tailLabels()[i]) && hasNbrAtLabel(tailLabels()[i - 1]) && countEmpty) {
-                        deltaP++;
-                    }
-                }
-
-                std::vector<int> R1;
-                for (int label : tailLabels()) {
+            } else {
+                // Compute the set S.
+                std::vector<int> S;
+                for (const int label : { headLabels()[4], tailLabels()[4] }) {
                     if (hasNbrAtLabel(label) && !hasExpHeadAtLabel(label)) {
-                        R1.push_back(label);
+                        S.push_back(label);
                     }
                 }
 
-                std::vector<int> R2;
-                for (const int label : headLabels()) {
-                    if (hasNbrAtLabel(label) && !hasExpHeadAtLabel(label)) {
-                        R2.push_back(label);
-                    }
-                }
+                // If the conditions are satisfied, contract to the new position;
+                // otherwise, contract back to the original one.
+                if ((checkProp1(S) || checkProp2(S))) {
 
-                int sumR = 0;
-                for (const int label : R1) {
-                    if (std::find(S.begin(), S.end(), label) == S.end()) {
-                        int G = hasTraversableObjectAtLabel(label);
-                        int neighbors = 0;
-                        if (label != 0 && std::find(R1.begin(), R1.end(), label - 1) != R1.end()) {
-                            neighbors++;
-                        } else if (label == 0 && std::find(R1.begin(), R1.end(), 9) != R1.end()) {
-                            neighbors++;
-                        }
+                    double chance = ComputeChance(S);
 
-                        if (label != 9 && std::find(R1.begin(), R1.end(), label + 1) != R1.end()) {
-                            neighbors++;
-                        } else if (label == 9 && std::find(R1.begin(), R1.end(), 0) != R1.end()) {
-                            neighbors++;
-                        }
-
-                        if (neighbors == 2) {
-                            sumR -= G;
-                        } else if (neighbors == 0) {
-                            sumR += G;
-                        }
-                    }
-                }
-
-                for (const int label : R2) {
-                    if (std::find(S.begin(), S.end(), label) == S.end()) {
-                        int G = hasTraversableObjectAtLabel(label);
-                        int neighbors = 0;
-                        if (label != 0 && std::find(R2.begin(), R2.end(), label - 1) != R2.end()) {
-                            neighbors++;
-                        } else if (label == 0 && std::find(R2.begin(), R2.end(), 9) != R2.end()) {
-                            neighbors++;
-                        }
-
-                        if (label != 9 && std::find(R2.begin(), R2.end(), label + 1) != R2.end()) {
-                            neighbors++;
-                        } else if (label == 9 && std::find(R2.begin(), R2.end(), 0) != R2.end()) {
-                            neighbors++;
-                        }
-
-                        if (neighbors == 2) {
-                            sumR += G;
-                        } else if (neighbors == 0) {
-                            sumR -= G;
-                        }
+                    if (q < chance) {
+                        contractTail();
                     } else {
-                        int G = hasTraversableObjectAtLabel(label);
-                        int neighbors1 = 0;
-                        int neighbors2 = 0;
-                        if (label != 0 && std::find(R2.begin(), R2.end(), label - 1) != R2.end()) {
-                            neighbors2++;
-                        } else if (label == 0 && std::find(R2.begin(), R2.end(), 9) != R2.end()) {
-                            neighbors2++;
-                        }
-
-                        if (label != 9 && std::find(R2.begin(), R2.end(), label + 1) != R2.end()) {
-                            neighbors2++;
-                        } else if (label == 9 && std::find(R2.begin(), R2.end(), 0) != R2.end()) {
-                            neighbors2++;
-                        }
-
-                        if (label != 0 && std::find(R1.begin(), R1.end(), label - 1) != R1.end()) {
-                            neighbors1++;
-                        } else if (label == 0 && std::find(R1.begin(), R1.end(), 9) != R1.end()) {
-                            neighbors1++;
-                        }
-
-                        if (label != 9 && std::find(R1.begin(), R1.end(), label + 1) != R1.end()) {
-                            neighbors1++;
-                        } else if (label == 9 && std::find(R1.begin(), R1.end(), 0) != R1.end()) {
-                            neighbors1++;
-                        }
-
-                        if (neighbors1 == 1) {
-                            sumR -= G;
-                        } else if (neighbors2 == 1) {
-                            sumR += G;
-                        }
+                        contractHead();
                     }
-                }
 
-                int gDiff = deltaP * (hasTraversableObjectAtNode(head) - hasTraversableObjectAtNode(nodeBefore)) + sumR;
-
-                if(pow(lambda, pDiff) * pow(pow(lambda, c - 1), gDiff) < 0.01){
-                    terminate = true;
-                } else {
-                    terminate = false;
-                }
-
-                if (q < pow(lambda, pDiff) * pow(pow(lambda, c - 1), gDiff)) {
-                    contractTail();
                 } else {
                     contractHead();
                 }
-
-            } else {
-                terminate = true;
+            }
+        } else {
+            //We are iterating over all directions to compute termination, so compute termination and always contractHead()
+            // Do the expanded stuff as you would normally do it for the algorithm
+            if (!flag || numNbrsBefore == 5) {
+                termCount += 1;
                 contractHead();
+            } else {
+                // Compute the set S.
+                std::vector<int> S;
+                for (const int label : { headLabels()[4], tailLabels()[4] }) {
+                    if (hasNbrAtLabel(label) && !hasExpHeadAtLabel(label)) {
+                        S.push_back(label);
+                    }
+                }
+
+                // If the conditions are satisfied, contract to the new position;
+                // otherwise, contract back to the original one.
+                if ((checkProp1(S) || checkProp2(S))) {
+
+                    double chance = ComputeChance(S);
+
+                    if(chance < 0.01){
+                        termCount += 1;
+                    }
+
+                    contractHead();
+                } else {
+                    termCount += 1;
+                    contractHead();
+                }
             }
         }
     }
+}
+
+double ShortcutBridgingParticle::ComputeChance(std::vector<int> S)
+{
+    int numNbrsAfter = nbrCount(headLabels());
+    int pDiff = numNbrsAfter - numNbrsBefore;
+    int deltaP = 0;
+    // TODO: is this supposed to be taillabels? and if so, does it cuont the head as a neighbour
+    bool countEmpty = hasNbrAtLabel(tailLabels()[0]);
+    for (int i = 1; i < tailLabels().size(); i++) {
+
+        if (hasNbrAtLabel(tailLabels()[i]) && !hasNbrAtLabel(tailLabels()[i - 1]) && !countEmpty) {
+            deltaP++;
+        }
+
+        if (!hasNbrAtLabel(tailLabels()[i]) && hasNbrAtLabel(tailLabels()[i - 1]) && countEmpty) {
+            deltaP++;
+        }
+    }
+
+    std::vector<int> R1;
+    for (int label : tailLabels()) {
+        if (hasNbrAtLabel(label) && !hasExpHeadAtLabel(label)) {
+            R1.push_back(label);
+        }
+    }
+
+    std::vector<int> R2;
+    for (const int label : headLabels()) {
+        if (hasNbrAtLabel(label) && !hasExpHeadAtLabel(label)) {
+            R2.push_back(label);
+        }
+    }
+
+    int sumR = 0;
+    for (const int label : R1) {
+        if (std::find(S.begin(), S.end(), label) == S.end()) {
+            int G = hasTraversableObjectAtLabel(label);
+            int neighbors = 0;
+            if (label != 0 && std::find(R1.begin(), R1.end(), label - 1) != R1.end()) {
+                neighbors++;
+            } else if (label == 0 && std::find(R1.begin(), R1.end(), 9) != R1.end()) {
+                neighbors++;
+            }
+
+            if (label != 9 && std::find(R1.begin(), R1.end(), label + 1) != R1.end()) {
+                neighbors++;
+            } else if (label == 9 && std::find(R1.begin(), R1.end(), 0) != R1.end()) {
+                neighbors++;
+            }
+
+            if (neighbors == 2) {
+                sumR -= G;
+            } else if (neighbors == 0) {
+                sumR += G;
+            }
+        }
+    }
+
+    for (const int label : R2) {
+        if (std::find(S.begin(), S.end(), label) == S.end()) {
+            int G = hasTraversableObjectAtLabel(label);
+            int neighbors = 0;
+            if (label != 0 && std::find(R2.begin(), R2.end(), label - 1) != R2.end()) {
+                neighbors++;
+            } else if (label == 0 && std::find(R2.begin(), R2.end(), 9) != R2.end()) {
+                neighbors++;
+            }
+
+            if (label != 9 && std::find(R2.begin(), R2.end(), label + 1) != R2.end()) {
+                neighbors++;
+            } else if (label == 9 && std::find(R2.begin(), R2.end(), 0) != R2.end()) {
+                neighbors++;
+            }
+
+            if (neighbors == 2) {
+                sumR += G;
+            } else if (neighbors == 0) {
+                sumR -= G;
+            }
+        } else {
+            int G = hasTraversableObjectAtLabel(label);
+            int neighbors1 = 0;
+            int neighbors2 = 0;
+            if (label != 0 && std::find(R2.begin(), R2.end(), label - 1) != R2.end()) {
+                neighbors2++;
+            } else if (label == 0 && std::find(R2.begin(), R2.end(), 9) != R2.end()) {
+                neighbors2++;
+            }
+
+            if (label != 9 && std::find(R2.begin(), R2.end(), label + 1) != R2.end()) {
+                neighbors2++;
+            } else if (label == 9 && std::find(R2.begin(), R2.end(), 0) != R2.end()) {
+                neighbors2++;
+            }
+
+            if (label != 0 && std::find(R1.begin(), R1.end(), label - 1) != R1.end()) {
+                neighbors1++;
+            } else if (label == 0 && std::find(R1.begin(), R1.end(), 9) != R1.end()) {
+                neighbors1++;
+            }
+
+            if (label != 9 && std::find(R1.begin(), R1.end(), label + 1) != R1.end()) {
+                neighbors1++;
+            } else if (label == 9 && std::find(R1.begin(), R1.end(), 0) != R1.end()) {
+                neighbors1++;
+            }
+
+            if (neighbors1 == 1) {
+                sumR -= G;
+            } else if (neighbors2 == 1) {
+                sumR += G;
+            }
+        }
+    }
+
+    int gDiff = deltaP * (hasTraversableObjectAtNode(head) - hasTraversableObjectAtNode(nodeBefore)) + sumR;
+
+    return pow(lambda, pDiff) * pow(pow(lambda, c - 1), gDiff);
 }
 
 QString ShortcutBridgingParticle::inspectionText() const
@@ -589,7 +653,6 @@ void ShortcutBridgingSystem::drawHexagonIsland(int numParticles)
             }
         }
     }
-
     insert(new Object(Node(0, 3 + x - 4), true));
 }
 

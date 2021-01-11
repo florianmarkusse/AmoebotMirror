@@ -38,8 +38,16 @@ protected:
     Node nodeBefore;
     const double c;
     bool terminate;
+    int OGDir;
+    bool itFlag;
+    int preDir;
+    int termCount;
 
 private:
+
+    // Compute chance to move to new position
+    double ComputeChance(std::vector<int> S);
+
     // Gets a reference to the neighboring particle incident to the specified port
     // label. Crashes if no such particle exists at this label; consider using
     // hasNbrAtLabel() first if unsure.

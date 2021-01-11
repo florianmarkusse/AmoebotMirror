@@ -44,8 +44,6 @@ void SeparationParticle::activate()
             neighbour.team = team;
             team = otherTeam;            
         }
-
-
     }
   } else {  // isExpanded().
     if (!flag || numNbrsBefore == 5) {
