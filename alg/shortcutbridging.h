@@ -98,6 +98,8 @@ private:
     void drawVObstacles(int numParticles, double lambda, double c);
     void drawVSmallIslands(int numParticles, double lambda, double c);
     void drawVBigIslands(int numParticles, double lambda, double c);
+
+    void drawTest(int numParticles, double lambda, double c);
 };
 
 class ShortcutPerimeterMeasure : public Measure {

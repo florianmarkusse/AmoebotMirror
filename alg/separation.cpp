@@ -16,61 +16,59 @@ SeparationParticle::SeparationParticle(const Node head, const int globalTailDir,
 void SeparationParticle::activate()
 {
     if (isContracted()) {
-    int expandDir = randDir();  // Select a random neighboring location.
-    q = randDouble(0, 1);        // Select a random q in (0,1).
+        int expandDir = randDir(); // Select a random neighboring location.
+        q = randDouble(0, 1); // Select a random q in (0,1).
 
-    if (canExpand(expandDir) && !hasExpNbr()) {
-      // Count neighbors in original position and expand.
-      numNbrsBefore = nbrCount(uniqueLabels());
-      numNbrsTeamBefore = nbrCountTeam(uniqueLabels(), team);
-      expand(expandDir);
-      flag = !hasExpNbr();
-    } 
-    //Swap operation
-    else if (!hasExpNbr() && nbrAtLabel(expandDir).team != team) {
-        int PnumNbr = nbrCountTeam(uniqueLabels(), team);
-        Team otherTeam = Blue;
-        if(team == Blue){
-            otherTeam = Red;
+        if (canExpand(expandDir) && !hasExpNbr()) {
+            // Count neighbors in original position and expand.
+            numNbrsBefore = nbrCount(uniqueLabels());
+            numNbrsTeamBefore = nbrCountTeam(uniqueLabels(), team);
+            expand(expandDir);
+            flag = !hasExpNbr();
         }
-        int PnumNrbOther = nbrCountTeam(uniqueLabels(), otherTeam) -1;
+        //Swap operation
+        else if (!hasExpNbr() && nbrAtLabel(expandDir).team != team) {
+            int PnumNbr = nbrCountTeam(uniqueLabels(), team);
+            Team otherTeam = Blue;
+            if (team == Blue) {
+                otherTeam = Red;
+            }
+            int PnumNrbOther = nbrCountTeam(uniqueLabels(), otherTeam) - 1;
 
-        SeparationParticle neighbour = nbrAtLabel(expandDir);
+            SeparationParticle* neighbour = nonConstNbrAtLabel(expandDir);
 
-        int QnumNrb = neighbour.nbrCountTeam(uniqueLabels(), neighbour.team);
-        int QnumNrbOther = neighbour.nbrCountTeam(uniqueLabels(), team) -1;
+            int QnumNrb = neighbour->nbrCountTeam(uniqueLabels(), neighbour->team);
+            int QnumNrbOther = neighbour->nbrCountTeam(uniqueLabels(), team) - 1;
 
-        if (q < pow(kappa, QnumNrbOther - PnumNbr + PnumNrbOther - QnumNrb)){
-            neighbour.team = team;
-            team = otherTeam;            
+            if (q < pow(kappa, QnumNrbOther - PnumNbr + PnumNrbOther - QnumNrb)) {
+                neighbour->team = team;
+                team = otherTeam;
+            }
         }
+    } else { // isExpanded().
+        if (!flag || numNbrsBefore == 5) {
+            contractHead();
+        } else {
+            // Count neighbors in new position and compute the set S.
+            int numNbrsAfter = nbrCount(headLabels());
+            int numNbrsTeamAfter = nbrCountTeam(headLabels(), team);
+            std::vector<int> S;
+            for (const int label : { headLabels()[4], tailLabels()[4] }) {
+                if (hasNbrAtLabel(label) && !hasExpHeadAtLabel(label)) {
+                    S.push_back(label);
+                }
+            }
 
-
+            // If the conditions are satisfied, contract to the new position;
+            // otherwise, contract back to the original one.
+            if ((q < pow(lambda, numNbrsAfter - numNbrsBefore) * pow(kappa, numNbrsTeamAfter - numNbrsTeamBefore))
+                && (checkProp1(S) || checkProp2(S))) {
+                contractTail();
+            } else {
+                contractHead();
+            }
+        }
     }
-  } else {  // isExpanded().
-    if (!flag || numNbrsBefore == 5) {
-      contractHead();
-    } else {
-      // Count neighbors in new position and compute the set S.
-      int numNbrsAfter = nbrCount(headLabels());
-      int numNbrsTeamAfter = nbrCountTeam(headLabels(), team);
-      std::vector<int> S;
-      for (const int label : {headLabels()[4], tailLabels()[4]}) {
-        if (hasNbrAtLabel(label) && !hasExpHeadAtLabel(label)) {
-          S.push_back(label);
-        }
-      }
-
-      // If the conditions are satisfied, contract to the new position;
-      // otherwise, contract back to the original one.
-      if ((q < pow(lambda, numNbrsAfter - numNbrsBefore) * pow(kappa, numNbrsTeamAfter - numNbrsTeamBefore))
-          && (checkProp1(S) || checkProp2(S))) {
-        contractTail();
-      } else {
-        contractHead();
-      }
-    }
-  }
 }
 
 QString SeparationParticle::inspectionText() const
@@ -121,6 +119,11 @@ SeparationParticle& SeparationParticle::nbrAtLabel(int label) const
     return AmoebotParticle::nbrAtLabel<SeparationParticle>(label);
 }
 
+SeparationParticle* SeparationParticle::nonConstNbrAtLabel(int label)
+{
+    return AmoebotParticle::nonConstNbrAtLabel<SeparationParticle>(label);
+}
+
 bool SeparationParticle::hasExpNbr() const
 {
     for (const int label : uniqueLabels()) {
@@ -131,7 +134,6 @@ bool SeparationParticle::hasExpNbr() const
 
     return false;
 }
-
 
 bool SeparationParticle::hasExpHeadAtLabel(const int label) const
 {

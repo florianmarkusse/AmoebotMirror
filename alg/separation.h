@@ -49,6 +49,8 @@ private:
     // hasNbrAtLabel() first if unsure.
     SeparationParticle& nbrAtLabel(int label) const;
 
+    SeparationParticle* nonConstNbrAtLabel(int label);
+
     // hasExpNbr() checks whether this particle has an expanded neighbor, while
     // hasExpHeadAtLabel() checks whether the head of an expanded neighbor is at
     // the position at the specified label.

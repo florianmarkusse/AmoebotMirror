@@ -68,6 +68,16 @@ const Particle& AmoebotSystem::at(int i) const
     return *particles.at(i);
 }
 
+Particle* AmoebotSystem::getParticleAt(Node node)
+{
+    auto it = particleMap.find(node);
+    if (it != particleMap.end()) {
+        return it->second;
+    }
+
+    return particles.at(0);
+}
+
 const std::deque<Object*>& AmoebotSystem::getObjects() const
 {
     return objects;
@@ -103,6 +113,23 @@ void AmoebotSystem::insert(Object* object)
 
     objects.push_back(object);
     objectMap[object->_node] = object;
+}
+
+void AmoebotSystem::removeParticles()
+{
+    for (auto p : particles) {
+        delete p;
+    }
+    particles.clear();
+    particleMap.clear();
+
+    for (auto c : _counts) {
+        delete c;
+    }
+
+    for (auto m : _measures) {
+        delete m;
+    }
 }
 
 void AmoebotSystem::registerMovement(unsigned int numMoves)

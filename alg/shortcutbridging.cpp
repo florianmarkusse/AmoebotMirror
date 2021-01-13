@@ -17,6 +17,7 @@ ShortcutBridgingParticle::ShortcutBridgingParticle(const Node head,
 
 void ShortcutBridgingParticle::activate()
 {
+    //return;
     if (isContracted()) {
         int expandDir = randDir(); // Select a random neighboring location.
         q = randDouble(0, 1); // Select a random q in (0,1).
@@ -329,6 +330,103 @@ bool ShortcutBridgingParticle::checkProp2(std::vector<int> S) const
     }
 }
 
+void ShortcutBridgingSystem::drawTest(int numParticles, double lambda, double c)
+{
+    // Draw v on its head.
+    int lineSize = (numParticles - 3) / 4;
+    int originalDir = 1; // NorthEast
+    for (int d = 0; d < 10; d++) {
+        Node boundNode(-1 * d, 0);
+        int dir = originalDir;
+        for (int i = 0; i < lineSize + d - 1; ++i) {
+            if (d == 1 && i == 0) {
+                insert(new Object(boundNode, true, true));
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+            } else {
+                insert(new Object(boundNode, true));
+                if (d < 2) {
+                    insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+                }
+            }
+            boundNode = boundNode.nodeInDir(dir);
+        }
+        dir = (dir + 5) % 6;
+        for (int i = 0; i < d + 1; ++i) {
+            insert(new Object(boundNode, true));
+            if (d < 2) {
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+            }
+            boundNode = boundNode.nodeInDir(dir);
+        }
+        dir = (dir + 5) % 6;
+        for (int i = 0; i < lineSize + d; ++i) {
+            if (d == 1 && i == lineSize + d - 1) {
+                insert(new Object(boundNode, true, true));
+                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+            } else {
+                insert(new Object(boundNode, true));
+                if (d < 2) {
+                    insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
+                }
+            }
+            boundNode = boundNode.nodeInDir(dir);
+        }
+    }
+
+    Node startNode = Node(-1, lineSize);
+    int topNodes = 3;
+    int topNodesLeft = 3;
+
+    int east = 0;
+    int west = 3;
+    int southWest = 4;
+    int southEast = 5;
+
+    bool goEast = true;
+
+    int gapSize = 4;
+
+    Node gapStarts = Node(1, lineSize - 2 - (gapSize - 1));
+
+    for (int i = gapSize; i > 0; i--) {
+        getParticleAt(startNode)->head.x = gapStarts.x;
+        getParticleAt(startNode)->head.y = gapStarts.y;
+        topNodesLeft--;
+        if (topNodesLeft == 0) {
+            startNode = Node(-1, lineSize - (topNodes - 2));
+            goEast = true;
+            topNodes++;
+            topNodesLeft = topNodes;
+        } else {
+            if (goEast) {
+                for (int j = 0; j < topNodesLeft; j++) {
+                    startNode = startNode.nodeInDir(east);
+                }
+                goEast = false;
+            } else {
+                for (int j = 0; j < topNodesLeft; j++) {
+                    startNode = startNode.nodeInDir(west);
+                }
+                goEast = true;
+            }
+        }
+        if (i == 1) {
+            if (gapSize % 2 == 1) {
+                gapStarts = gapStarts.nodeInDir(southWest);
+
+            } else {
+                gapStarts = gapStarts.nodeInDir(southEast);
+            }
+        } else {
+            if (gapSize % 2 == 1) {
+                gapStarts = gapStarts.nodeInDir(west);
+            } else {
+                gapStarts = gapStarts.nodeInDir(east);
+            }
+        }
+    }
+}
+
 ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, double c, Shape shape)
     : c(c)
 {
@@ -336,6 +434,7 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
 
     switch (shape) {
     case Shape::V:
+        //drawTest(numParticles, lambda, c);
         drawV(numParticles, lambda, c);
         break;
     case Shape::Z:
@@ -367,6 +466,7 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
 
 bool ShortcutBridgingSystem::hasTerminated() const
 {
+    return false;
     for (auto particle : particles) {
         auto comp_p = dynamic_cast<ShortcutBridgingParticle*>(particle);
         if (!comp_p->terminate) {
