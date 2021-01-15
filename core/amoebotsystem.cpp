@@ -128,7 +128,7 @@ void AmoebotSystem::insert(Object* object)
     objectMap[object->_node] = object;
 }
 
-void AmoebotSystem::removeParticles()
+void AmoebotSystem::removeParticles(bool removeObjects)
 {
     for (auto p : particles) {
         delete p;
@@ -136,11 +136,13 @@ void AmoebotSystem::removeParticles()
     particles.clear();
     particleMap.clear();
 
-    for (auto t : objects) {
-        delete t;
+    if (removeObjects) {
+        for (auto t : objects) {
+            delete t;
+        }
+        objects.clear();
+        objectMap.clear();
     }
-    objects.clear();
-    objectMap.clear();
 }
 
 void AmoebotSystem::registerMovement(unsigned int numMoves)

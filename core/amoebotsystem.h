@@ -64,7 +64,7 @@ public:
     void insert(AmoebotParticle* particle);
     void insert(Object* object);
 
-    void removeParticles();
+    void removeParticles(bool removeObjects = true);
 
     // Functions for logging system progress. registerMovement logs the given
     // number of movements the system has made. registerActivation logs that the

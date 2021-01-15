@@ -30,6 +30,9 @@ class Node {
   // more information on global directions, see localparticle.h.
   Node nodeInDir(int dir) const;
 
+  // Returns the node adjacent to this one in the given other node's direction.
+  Node nodeTowardsNode(Node other) const;
+
   int x, y;
 };
 
@@ -62,6 +65,38 @@ inline Node Node::nodeInDir(int dir) const {
   static constexpr std::array<int, 6> yOffset = {{0, 1,  1,  0, -1, -1}};
 
   return Node(x + xOffset[dir], y + yOffset[dir]);
+}
+
+inline Node Node::nodeTowardsNode(Node other) const {
+  int ox = other.x;
+  int oy = other.y;
+  int xDiff = ox - this->x;
+  int yDiff = oy - this->y;
+  int zDiff = 0;
+  if (xDiff > 0 && yDiff < 0) { // Possibly South-East
+    zDiff = std::min(xDiff, -yDiff);
+  } else if (xDiff < 0 && yDiff > 0) { // Possibly North-West
+    zDiff = -std::min(-xDiff, yDiff);
+  }
+  if (std::abs(zDiff) > std::abs(xDiff)/2 && std::abs(zDiff) > std::abs(yDiff)/2){
+      if (zDiff > 0) {
+          return Node(x+1,y-1);
+      } else {
+          return Node(x-1,y+1);
+      }
+  } else if (std::abs(xDiff) > std::abs(yDiff) && std::abs(xDiff) > std::abs(zDiff)) {
+      if (xDiff > 0) {
+          return Node(x+1,y);
+      } else {
+          return Node(x-1,y);
+      }
+  } else {
+      if (yDiff > 0) {
+          return Node(x,y+1);
+      } else {
+          return Node(x,y-1);
+      }
+  }
 }
 
 inline bool operator<(const Node& v1, const Node& v2) {

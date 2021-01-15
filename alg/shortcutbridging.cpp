@@ -363,11 +363,36 @@ void ShortcutBridgingSystem::drawTest(int numParticles, double lambda, double c)
 
 void ShortcutBridgingSystem::drawZTest(int numParticles, double lambda, double c) {
     drawZ(numParticles, lambda, c);
+    removeParticles(false);
+
+    int lineSize = (numParticles - 13) / 6;
+    int originalDir = 1; // NorthEast
+
+    Node startNode(-1,0);
+    Node endNode(lineSize + 2, lineSize + 8);
+    insert(new ShortcutBridgingParticle(Node(startNode.x, startNode.y), -1, randDir(), *this, lambda, c));
+    insert(new ShortcutBridgingParticle(Node(endNode.x, endNode.y), -1, randDir(), *this, lambda, c));
+
+    int particlesRemaining = numParticles - 2;
+    Node drawNode = startNode.nodeTowardsNode(endNode);
+    Node endDrawNode = endNode.nodeTowardsNode(startNode);
+    // Draw line from start to end
+    while (drawNode.nodeTowardsNode(endDrawNode) != endDrawNode) {
+        insert(new ShortcutBridgingParticle(Node(drawNode.x, drawNode.y), -1, randDir(), *this, lambda, c));
+        insert(new ShortcutBridgingParticle(Node(endDrawNode.x, endDrawNode.y), -1, randDir(), *this, lambda, c));
+        Node oldDrawNode = drawNode;
+        drawNode = drawNode.nodeTowardsNode(endDrawNode);
+        endDrawNode = endDrawNode.nodeTowardsNode(oldDrawNode);
+    }
+    insert(new ShortcutBridgingParticle(Node(drawNode.x, drawNode.y), -1, randDir(), *this, lambda, c));
+    if (drawNode != endDrawNode) {
+        insert(new ShortcutBridgingParticle(Node(endDrawNode.x, endDrawNode.y), -1, randDir(), *this, lambda, c));
+    }
 
     double perim = getMeasure("Perimeter").calculate();
     double gapPerim = getMeasure("Gap Perimeter").calculate();
-    qDebug(std::to_string(perim).c_str());
-    qDebug(std::to_string(gapPerim).c_str());
+//    qDebug(std::to_string(perim).c_str());
+//    qDebug(std::to_string(gapPerim).c_str());
 }
 
 ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, double c, Shape shape)
@@ -386,7 +411,8 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
 		//drawV(numParticles, lambda, c);
 		break;
 	case Shape::Z:
-		drawZ(numParticles, lambda, c);
+        drawZTest(numParticles, lambda, c);
+//		drawZ(numParticles, lambda, c);
 		break;
 	case Shape::Hexagon:
 		drawHexagon(numParticles, lambda, c);
