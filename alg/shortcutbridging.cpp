@@ -1,6 +1,9 @@
 
 #include "alg/shortcutbridging.h"
 
+bool nextStartNode(bool goEast, int topNodesLeft, Node& startNode);
+void nextGapStarts(int i, int gapSize, Node& gapStarts);
+
 ShortcutBridgingParticle::ShortcutBridgingParticle(const Node head,
     const int globalTailDir, const int orientation, AmoebotSystem& system, const double lambda, const double c, bool terminate)
     : AmoebotParticle(head, globalTailDir, orientation, system)
@@ -333,98 +336,61 @@ bool ShortcutBridgingParticle::checkProp2(std::vector<int> S) const
 void ShortcutBridgingSystem::drawTest(int numParticles, double lambda, double c)
 {
     // Draw v on its head.
-    int lineSize = (numParticles - 3) / 4;
-    int originalDir = 1; // NorthEast
-    for (int d = 0; d < 10; d++) {
-        Node boundNode(-1 * d, 0);
-        int dir = originalDir;
-        for (int i = 0; i < lineSize + d - 1; ++i) {
-            if (d == 1 && i == 0) {
-                insert(new Object(boundNode, true, true));
-                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
-            } else {
-                insert(new Object(boundNode, true));
-                if (d < 2) {
-                    insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
-                }
-            }
-            boundNode = boundNode.nodeInDir(dir);
-        }
-        dir = (dir + 5) % 6;
-        for (int i = 0; i < d + 1; ++i) {
-            insert(new Object(boundNode, true));
-            if (d < 2) {
-                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
-            }
-            boundNode = boundNode.nodeInDir(dir);
-        }
-        dir = (dir + 5) % 6;
-        for (int i = 0; i < lineSize + d; ++i) {
-            if (d == 1 && i == lineSize + d - 1) {
-                insert(new Object(boundNode, true, true));
-                insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
-            } else {
-                insert(new Object(boundNode, true));
-                if (d < 2) {
-                    insert(new ShortcutBridgingParticle(Node(boundNode.x, boundNode.y), -1, randDir(), *this, lambda, c));
-                }
-            }
-            boundNode = boundNode.nodeInDir(dir);
-        }
-    }
+    drawV(numParticles, lambda, c);
 
-    Node startNode = Node(-1, lineSize);
+    int lineSize = (numParticles - 3) / 4;
+
     int topNodes = 3;
     int topNodesLeft = 3;
 
-    int east = 0;
-    int west = 3;
-    int southWest = 4;
-    int southEast = 5;
-
     bool goEast = true;
 
-    int gapSize = 4;
+    int gapSize = 1;
 
+    Node startNode = Node(-1, lineSize);
     Node gapStarts = Node(1, lineSize - 2 - (gapSize - 1));
 
-    for (int i = gapSize; i > 0; i--) {
-        getParticleAt(startNode)->head.x = gapStarts.x;
-        getParticleAt(startNode)->head.y = gapStarts.y;
-        topNodesLeft--;
-        if (topNodesLeft == 0) {
-            startNode = Node(-1, lineSize - (topNodes - 2));
-            goEast = true;
-            topNodes++;
-            topNodesLeft = topNodes;
-        } else {
-            if (goEast) {
-                for (int j = 0; j < topNodesLeft; j++) {
-                    startNode = startNode.nodeInDir(east);
-                }
-                goEast = false;
-            } else {
-                for (int j = 0; j < topNodesLeft; j++) {
-                    startNode = startNode.nodeInDir(west);
-                }
-                goEast = true;
-            }
-        }
-        if (i == 1) {
-            if (gapSize % 2 == 1) {
-                gapStarts = gapStarts.nodeInDir(southWest);
+    while (gapSize < 20) {
+        for (int i = gapSize; i > 0; i--) {
 
+            moveParticle(startNode, gapStarts);
+            topNodesLeft--;
+
+            if (topNodesLeft == 0) {
+                startNode = Node(-1, lineSize - (topNodes - 2));
+
+                goEast = true;
+
+                topNodes++;
+                topNodesLeft = topNodes;
             } else {
-                gapStarts = gapStarts.nodeInDir(southEast);
+                goEast = nextStartNode(goEast, topNodesLeft, startNode);
             }
-        } else {
-            if (gapSize % 2 == 1) {
-                gapStarts = gapStarts.nodeInDir(west);
-            } else {
-                gapStarts = gapStarts.nodeInDir(east);
-            }
+            nextGapStarts(i, gapSize, gapStarts);
         }
+        gapSize++;
     }
+
+    Node fillerNode = { -2, 0 };
+
+    while (topNodesLeft > 0) {
+
+        moveParticle(startNode, fillerNode);
+        topNodesLeft--;
+
+        goEast = nextStartNode(goEast, topNodesLeft, startNode);
+
+        fillerNode.y += 1;
+    }
+
+    double perim = getMeasure("Perimeter").calculate();
+    double gapPerim = getMeasure("Gap Perimeter").calculate();
+
+    qDebug(std::to_string(perim + (c - 1) * gapPerim).c_str());
+
+    //removeParticles();
+
+    //drawV(numParticles, lambda, c);
 }
 
 ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, double c, Shape shape)
@@ -432,10 +398,15 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
 {
     Q_ASSERT(lambda >= 0);
 
+    // Set up metrics.
+    _measures.push_back(new ShortcutPerimeterMeasure("Perimeter", 1, *this));
+    _measures.push_back(new ShortcutGapPerimeterMeasure("Gap Perimeter", 1, *this));
+    _measures.push_back(new WeightedPerimeterMeasure("Weighted measure", 1, *this));
+
     switch (shape) {
     case Shape::V:
-        //drawTest(numParticles, lambda, c);
-        drawV(numParticles, lambda, c);
+        drawTest(numParticles, lambda, c);
+        //drawV(numParticles, lambda, c);
         break;
     case Shape::Z:
         drawZ(numParticles, lambda, c);
@@ -457,11 +428,6 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
         drawVObstacles(numParticles, lambda, c);
         break;
     }
-
-    // Set up metrics.
-    _measures.push_back(new ShortcutPerimeterMeasure("Perimeter", 1, *this));
-    _measures.push_back(new ShortcutGapPerimeterMeasure("Gap Perimeter", 1, *this));
-    _measures.push_back(new WeightedPerimeterMeasure("Weighted measure", 1, *this));
 }
 
 bool ShortcutBridgingSystem::hasTerminated() const
@@ -783,4 +749,52 @@ double WeightedPerimeterMeasure::calculate() const
     double gapPerimeter = _system.getMeasure("Gap Perimeter")._history[size - 1];
 
     return perimeter + (_system.c - 1) * gapPerimeter;
+}
+
+void ShortcutBridgingSystem::moveParticle(const Node& startNode, const Node& endNode)
+{
+    auto p = getParticleAt(startNode);
+    Node startLocation = Node(p->head.x, p->head.y);
+    p->head.x = endNode.x;
+    p->head.y = endNode.y;
+    changeLocation(startLocation);
+}
+
+bool nextStartNode(bool goEast, int topNodesLeft, Node& startNode)
+{
+    int east = 0;
+    int west = 3;
+    if (goEast) {
+        for (int j = 0; j < topNodesLeft; j++) {
+            startNode = startNode.nodeInDir(east);
+        }
+    } else {
+        for (int j = 0; j < topNodesLeft; j++) {
+            startNode = startNode.nodeInDir(west);
+        }
+    }
+
+    return !goEast;
+}
+
+void nextGapStarts(int i, int gapSize, Node& gapStarts)
+{
+    int east = 0;
+    int west = 3;
+    int southWest = 4;
+    int southEast = 5;
+
+    if (i == 1) {
+        if (gapSize % 2 == 1) {
+            gapStarts = gapStarts.nodeInDir(southWest);
+        } else {
+            gapStarts = gapStarts.nodeInDir(southEast);
+        }
+    } else {
+        if (gapSize % 2 == 1) {
+            gapStarts = gapStarts.nodeInDir(west);
+        } else {
+            gapStarts = gapStarts.nodeInDir(east);
+        }
+    }
 }

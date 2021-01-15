@@ -100,6 +100,8 @@ private:
     void drawVBigIslands(int numParticles, double lambda, double c);
 
     void drawTest(int numParticles, double lambda, double c);
+
+    void moveParticle(const Node& startNode, const Node& endNode);
 };
 
 class ShortcutPerimeterMeasure : public Measure {

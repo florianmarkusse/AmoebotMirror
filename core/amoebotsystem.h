@@ -53,6 +53,8 @@ public:
     // not const reference to particle at specified node of particles.
     Particle* getParticleAt(Node node);
 
+    bool changeLocation(const Node& startNode);
+
     // Returns a reference to the object list.
     virtual const std::deque<Object*>& getObjects() const final;
 

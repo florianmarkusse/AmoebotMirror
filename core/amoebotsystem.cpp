@@ -74,8 +74,21 @@ Particle* AmoebotSystem::getParticleAt(Node node)
     if (it != particleMap.end()) {
         return it->second;
     }
-
+    qWarning(std::to_string(node.x).c_str());
+    qWarning(std::to_string(node.y).c_str());
     return particles.at(0);
+}
+
+bool AmoebotSystem::changeLocation(const Node& startNode)
+{
+    auto it = particleMap.find(startNode);
+
+    auto p = it->second;
+
+    particleMap.erase(it);
+    particleMap[p->head] = p;
+
+    return true;
 }
 
 const std::deque<Object*>& AmoebotSystem::getObjects() const
@@ -123,13 +136,11 @@ void AmoebotSystem::removeParticles()
     particles.clear();
     particleMap.clear();
 
-    for (auto c : _counts) {
-        delete c;
+    for (auto t : objects) {
+        delete t;
     }
-
-    for (auto m : _measures) {
-        delete m;
-    }
+    objects.clear();
+    objectMap.clear();
 }
 
 void AmoebotSystem::registerMovement(unsigned int numMoves)
