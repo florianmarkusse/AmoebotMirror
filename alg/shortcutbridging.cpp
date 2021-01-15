@@ -3,7 +3,7 @@
 bool nextStartNode(bool goEast, int topNodesLeft, Node& startNode);
 void nextGapStarts(int i, int gapSize, Node& gapStarts);
 bool nextFillerNode(Node& fillerNode, int yMax, int diagonalDirection, int xDirection, bool placeLeft);
-double thickBridge(int lineSize, int maxGapSize);
+bool thinNextStartNode(bool goEast, Node& startNode, int gapSizeInBetweenTopNodes, int topNodesLeft);
 
 ShortcutBridgingParticle::ShortcutBridgingParticle(const Node head,
 	const int globalTailDir, const int orientation, AmoebotSystem& system, const double lambda, const double c)
@@ -360,13 +360,9 @@ void ShortcutBridgingSystem::drawTest(int numParticles, double lambda, double c)
 
 	startingGap = 1;
 
-	drawV(numParticles, lambda, c);
-	double result = thinBrigde(lineSize, 19);
-
-	/*
 	while (startingGap < lineSize) {
 		drawV(numParticles, lambda, c);
-		double result = thickBridge(lineSize, startingGap);
+		double result = thinBrigde(lineSize, startingGap);
 		if (result < bestResult) {
 			bestResult = result;
 		}
@@ -374,18 +370,18 @@ void ShortcutBridgingSystem::drawTest(int numParticles, double lambda, double c)
 		qDebug(std::to_string(result).c_str());
 		startingGap++;
 	}
-	*/
 
 	qDebug(std::to_string(bestResult).c_str());
 }
 
-void ShortcutBridgingSystem::drawZTest(int numParticles, double lambda, double c) {
-    drawZ(numParticles, lambda, c);
+void ShortcutBridgingSystem::drawZTest(int numParticles, double lambda, double c)
+{
+	drawZ(numParticles, lambda, c);
 
-    double perim = getMeasure("Perimeter").calculate();
-    double gapPerim = getMeasure("Gap Perimeter").calculate();
-    qDebug(std::to_string(perim).c_str());
-    qDebug(std::to_string(gapPerim).c_str());
+	double perim = getMeasure("Perimeter").calculate();
+	double gapPerim = getMeasure("Gap Perimeter").calculate();
+	qDebug(std::to_string(perim).c_str());
+	qDebug(std::to_string(gapPerim).c_str());
 }
 
 ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, double c, Shape shape)
@@ -422,7 +418,7 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
 	case Shape::VObstacle:
 		drawVObstacles(numParticles, lambda, c);
 		break;
-    }
+	}
 }
 
 bool ShortcutBridgingSystem::hasTerminated() const
@@ -830,6 +826,7 @@ double ShortcutBridgingSystem::thinBrigde(int lineSize, int gapSize)
 	Node startNode = Node(-1, lineSize);
 	Node gapStarts = Node(1, lineSize - 2 - (gapSize - 1));
 
+	// Create bridge.
 	for (int i = gapSize; i > 0; i--) {
 		moveParticle(startNode, gapStarts);
 		topNodesLeft--;
@@ -845,28 +842,7 @@ double ShortcutBridgingSystem::thinBrigde(int lineSize, int gapSize)
 		}
 		else {
 			if (gapSizeInBetweenTopNodes > 0) {
-				int east = 0;
-				int west = 3;
-				qDebug(std::to_string(gapSizeInBetweenTopNodes).c_str());
-				if (goEast) {
-					for (int j = 0; j < gapSizeInBetweenTopNodes; j++) {
-						startNode = startNode.nodeInDir(east);
-					}
-					if (topNodesLeft == 3) {
-						startNode = startNode.nodeInDir(east);
-						startNode = startNode.nodeInDir(east);
-					}
-					startNode = startNode.nodeInDir(east);
-					goEast = false;
-				}
-				else {
-					for (int j = 0; j < gapSizeInBetweenTopNodes; j++) {
-						startNode = startNode.nodeInDir(west);
-					}
-					startNode = startNode.nodeInDir(west);
-					startNode = startNode.nodeInDir(west);
-					goEast = true;
-				}
+				goEast = thinNextStartNode(goEast, startNode, gapSizeInBetweenTopNodes, topNodesLeft);
 			}
 			else {
 				goEast = nextStartNode(goEast, topNodesLeft, startNode);
@@ -875,7 +851,75 @@ double ShortcutBridgingSystem::thinBrigde(int lineSize, int gapSize)
 		gapStarts = gapStarts.nodeInDir(0);
 	}
 
-	return 0.0;
+	int northEast = 1;
+	int northWest = 2;
+
+	bool placeLeft = false;
+	int yMax = gapStarts.y;
+	Node fillerNodeLeft = { -2, 0 };
+	Node fillerNodeRight = { fillerNodeLeft.x + 4 + lineSize, 0 };
+
+	// Create filler.
+	while (startNode.y > gapStarts.y) {
+		if (placeLeft) {
+			moveParticle(startNode, fillerNodeLeft);
+			placeLeft = nextFillerNode(fillerNodeLeft, yMax, northEast, -1, placeLeft);
+		}
+		else {
+			moveParticle(startNode, fillerNodeRight);
+			placeLeft = nextFillerNode(fillerNodeRight, yMax, northWest, 1, placeLeft);
+		}
+		topNodesLeft--;
+
+		if (topNodesLeft == 0) {
+			startNode = Node(-1, lineSize - (topNodes - 2));
+			gapSizeInBetweenTopNodes++;
+
+			goEast = true;
+
+			topNodes++;
+			topNodesLeft = 4;
+		}
+		else {
+			if (gapSizeInBetweenTopNodes > 0) {
+				goEast = thinNextStartNode(goEast, startNode, gapSizeInBetweenTopNodes, topNodesLeft);
+			}
+			else {
+				goEast = nextStartNode(goEast, topNodesLeft, startNode);
+			}
+		}
+	}
+
+	double perim = getMeasure("Perimeter").calculate();
+	double gapPerim = getMeasure("Gap Perimeter").calculate();
+
+	return (perim + (c - 1) * gapPerim);
+}
+
+bool thinNextStartNode(bool goEast, Node& startNode, int gapSizeInBetweenTopNodes, int topNodesLeft)
+{
+	int east = 0;
+	int west = 3;
+
+	if (goEast) {
+		for (int j = 0; j < gapSizeInBetweenTopNodes; j++) {
+			startNode = startNode.nodeInDir(east);
+		}
+		if (topNodesLeft == 3) {
+			startNode = startNode.nodeInDir(east);
+			startNode = startNode.nodeInDir(east);
+		}
+		startNode = startNode.nodeInDir(east);
+		return false;
+	}
+	else {
+		for (int j = 0; j < gapSizeInBetweenTopNodes; j++) {
+			startNode = startNode.nodeInDir(west);
+		}
+		startNode = startNode.nodeInDir(west);
+		startNode = startNode.nodeInDir(west);
+		return true;
+	}
 }
 
 bool nextStartNode(bool goEast, int topNodesLeft, Node& startNode)
