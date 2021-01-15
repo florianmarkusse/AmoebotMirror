@@ -340,7 +340,7 @@ bool ShortcutBridgingParticle::checkProp2(std::vector<int> S) const
 	}
 }
 
-void ShortcutBridgingSystem::drawTest(int numParticles, double lambda, double c)
+void ShortcutBridgingSystem::getOptimalV(int numParticles, double lambda, double c)
 {
 	int lineSize = (numParticles - 3) / 4;
 
@@ -371,6 +371,8 @@ void ShortcutBridgingSystem::drawTest(int numParticles, double lambda, double c)
 		startingGap++;
 	}
 
+	optimalWeightedPerimeter = bestResult;
+
 	qDebug(std::to_string(bestResult).c_str());
 }
 
@@ -396,8 +398,8 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
 
 	switch (shape) {
 	case Shape::V:
-		drawTest(numParticles, lambda, c);
-		//drawV(numParticles, lambda, c);
+		getOptimalV(numParticles, lambda, c);
+		drawV(numParticles, lambda, c);
 		break;
 	case Shape::Z:
 		drawZ(numParticles, lambda, c);
@@ -423,6 +425,15 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
 
 bool ShortcutBridgingSystem::hasTerminated() const
 {
+	size_t size = getMeasure("Weighted measure")._history.size();
+	if (size < 1) {
+		return false;
+	}
+	double measure = getMeasure("Weighted measure")._history[size - 1];
+
+	if (measure <= optimalWeightedPerimeter * 1.08) {
+		return true;
+	}
 	return false;
 }
 
