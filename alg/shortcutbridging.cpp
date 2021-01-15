@@ -358,6 +358,24 @@ void ShortcutBridgingSystem::drawTest(int numParticles, double lambda, double c)
 		startingGap++;
 	}
 
+	startingGap = 1;
+
+	drawV(numParticles, lambda, c);
+	double result = thinBrigde(lineSize, 19);
+
+	/*
+	while (startingGap < lineSize) {
+		drawV(numParticles, lambda, c);
+		double result = thickBridge(lineSize, startingGap);
+		if (result < bestResult) {
+			bestResult = result;
+		}
+		removeParticles();
+		qDebug(std::to_string(result).c_str());
+		startingGap++;
+	}
+	*/
+
 	qDebug(std::to_string(bestResult).c_str());
 }
 
@@ -790,6 +808,65 @@ double ShortcutBridgingSystem::thickBridge(int lineSize, int maxGapSize)
 	double gapPerim = getMeasure("Gap Perimeter").calculate();
 
 	return (perim + (c - 1) * gapPerim);
+}
+
+double ShortcutBridgingSystem::thinBrigde(int lineSize, int gapSize)
+{
+	int topNodes = 3;
+	int topNodesLeft = 3;
+
+	int gapSizeInBetweenTopNodes = -1;
+	bool goEast = true;
+
+	Node startNode = Node(-1, lineSize);
+	Node gapStarts = Node(1, lineSize - 2 - (gapSize - 1));
+
+	for (int i = gapSize; i > 0; i--) {
+		moveParticle(startNode, gapStarts);
+		topNodesLeft--;
+
+		if (topNodesLeft == 0) {
+			startNode = Node(-1, lineSize - (topNodes - 2));
+			gapSizeInBetweenTopNodes++;
+
+			goEast = true;
+
+			topNodes++;
+			topNodesLeft = 4;
+		}
+		else {
+			if (gapSizeInBetweenTopNodes > 0) {
+				int east = 0;
+				int west = 3;
+				qDebug(std::to_string(gapSizeInBetweenTopNodes).c_str());
+				if (goEast) {
+					for (int j = 0; j < gapSizeInBetweenTopNodes; j++) {
+						startNode = startNode.nodeInDir(east);
+					}
+					if (topNodesLeft == 3) {
+						startNode = startNode.nodeInDir(east);
+						startNode = startNode.nodeInDir(east);
+					}
+					startNode = startNode.nodeInDir(east);
+					goEast = false;
+				}
+				else {
+					for (int j = 0; j < gapSizeInBetweenTopNodes; j++) {
+						startNode = startNode.nodeInDir(west);
+					}
+					startNode = startNode.nodeInDir(west);
+					startNode = startNode.nodeInDir(west);
+					goEast = true;
+				}
+			}
+			else {
+				goEast = nextStartNode(goEast, topNodesLeft, startNode);
+			}
+		}
+		gapStarts = gapStarts.nodeInDir(0);
+	}
+
+	return 0.0;
 }
 
 bool nextStartNode(bool goEast, int topNodesLeft, Node& startNode)
