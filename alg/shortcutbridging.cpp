@@ -85,7 +85,7 @@ void ShortcutBridgingParticle::activate()
                 int sumR = 0;
                 for (const int label : R1) {
                     if (std::find(S.begin(), S.end(), label) == S.end()) {
-                        int G = hasTraversableObjectAtLabel(label);
+                        int G = !hasTraversableObjectAtLabel(label);
                         int neighbors = 0;
                         if (label != 0 && std::find(R1.begin(), R1.end(), label - 1) != R1.end()) {
                             neighbors++;
@@ -109,7 +109,7 @@ void ShortcutBridgingParticle::activate()
 
                 for (const int label : R2) {
                     if (std::find(S.begin(), S.end(), label) == S.end()) {
-                        int G = hasTraversableObjectAtLabel(label);
+                        int G = !hasTraversableObjectAtLabel(label);
                         int neighbors = 0;
                         if (label != 0 && std::find(R2.begin(), R2.end(), label - 1) != R2.end()) {
                             neighbors++;
@@ -129,7 +129,7 @@ void ShortcutBridgingParticle::activate()
                             sumR -= G;
                         }
                     } else {
-                        int G = hasTraversableObjectAtLabel(label);
+                        int G = !hasTraversableObjectAtLabel(label);
                         int neighbors1 = 0;
                         int neighbors2 = 0;
                         if (label != 0 && std::find(R2.begin(), R2.end(), label - 1) != R2.end()) {
@@ -164,7 +164,7 @@ void ShortcutBridgingParticle::activate()
                     }
                 }
 
-                int gDiff = deltaP * (hasTraversableObjectAtNode(head) - hasTraversableObjectAtNode(nodeBefore)) + sumR;
+                int gDiff = deltaP * (!hasTraversableObjectAtNode(nodeBefore) - !hasTraversableObjectAtNode(head)) + sumR;
 
                 if (pow(lambda, pDiff) * pow(pow(lambda, c - 1), gDiff) < 0.01) {
                     terminate = true;
