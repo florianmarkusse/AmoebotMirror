@@ -5,7 +5,7 @@ bool nextStartNode(bool goEast, int topNodesLeft, Node& startNode);
 void nextGapStarts(int i, int gapSize, Node& gapStarts);
 
 ShortcutBridgingParticle::ShortcutBridgingParticle(const Node head,
-    const int globalTailDir, const int orientation, AmoebotSystem& system, const double lambda, const double c, bool terminate)
+    const int globalTailDir, const int orientation, AmoebotSystem& system, const double lambda, const double c)
     : AmoebotParticle(head, globalTailDir, orientation, system)
     , lambda(lambda)
     , q(0)
@@ -13,8 +13,6 @@ ShortcutBridgingParticle::ShortcutBridgingParticle(const Node head,
     , flag(false)
     , nodeBefore(head)
     , c(c)
-    , terminate(terminate)
-
 {
 }
 
@@ -25,9 +23,6 @@ void ShortcutBridgingParticle::activate()
         int expandDir = randDir(); // Select a random neighboring location.
         q = randDouble(0, 1); // Select a random q in (0,1).
 
-        if (hasAnchorObjectAtNode(head)) {
-            terminate = true;
-        }
 
         if (canExpand(expandDir) && !hasExpNbr() && !hasAnchorObjectAtNode(head)) {
             // Count neighbors in original position and expand.
@@ -38,7 +33,6 @@ void ShortcutBridgingParticle::activate()
         }
     } else { // isExpanded().
         if (!flag || numNbrsBefore == 5) {
-            terminate = true;
             contractHead();
         } else {
             // Count neighbors in new position and compute the set S.
@@ -166,11 +160,6 @@ void ShortcutBridgingParticle::activate()
 
                 int gDiff = deltaP * (!hasTraversableObjectAtNode(nodeBefore) - !hasTraversableObjectAtNode(head)) + sumR;
 
-                if (pow(lambda, pDiff) * pow(pow(lambda, c - 1), gDiff) < 0.01) {
-                    terminate = true;
-                } else {
-                    terminate = false;
-                }
 
                 if (q < pow(lambda, pDiff) * pow(pow(lambda, c - 1), gDiff)) {
                     contractTail();
@@ -179,7 +168,6 @@ void ShortcutBridgingParticle::activate()
                 }
 
             } else {
-                terminate = true;
                 contractHead();
             }
         }
@@ -433,14 +421,6 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
 bool ShortcutBridgingSystem::hasTerminated() const
 {
     return false;
-    for (auto particle : particles) {
-        auto comp_p = dynamic_cast<ShortcutBridgingParticle*>(particle);
-        if (!comp_p->terminate) {
-            return false;
-        }
-    }
-
-    return true;
 }
 
 void ShortcutBridgingSystem::drawVGeneric(int numParticles, double lambda, double c, bool smallIslands, bool bigIslands, bool obstacle)
