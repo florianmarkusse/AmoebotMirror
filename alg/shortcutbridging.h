@@ -101,6 +101,8 @@ private:
     void drawTest(int numParticles, double lambda, double c);
 
     void moveParticle(const Node& startNode, const Node& endNode);
+
+    double thickBridge(int lineSize, int maxGapSize);
 };
 
 class ShortcutPerimeterMeasure : public Measure {
