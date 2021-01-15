@@ -3,7 +3,7 @@
 bool nextStartNode(bool goEast, int topNodesLeft, Node& startNode);
 void nextGapStarts(int i, int gapSize, Node& gapStarts);
 bool nextFillerNode(Node& fillerNode, int yMax, int diagonalDirection, int xDirection, bool placeLeft);
-double thickBridge(int lineSize, int maxGapSize);
+bool thinNextStartNode(bool goEast, Node& startNode, int gapSizeInBetweenTopNodes, int topNodesLeft);
 
 ShortcutBridgingParticle::ShortcutBridgingParticle(const Node head,
 	const int globalTailDir, const int orientation, AmoebotSystem& system, const double lambda, const double c)
@@ -340,7 +340,7 @@ bool ShortcutBridgingParticle::checkProp2(std::vector<int> S) const
 	}
 }
 
-void ShortcutBridgingSystem::drawTest(int numParticles, double lambda, double c)
+void ShortcutBridgingSystem::getOptimalV(int numParticles, double lambda, double c)
 {
 	int lineSize = (numParticles - 3) / 4;
 
@@ -354,11 +354,22 @@ void ShortcutBridgingSystem::drawTest(int numParticles, double lambda, double c)
 			bestResult = result;
 		}
 		removeParticles();
-		qDebug(std::to_string(result).c_str());
 		startingGap++;
 	}
 
-	qDebug(std::to_string(bestResult).c_str());
+	startingGap = 1;
+
+	while (startingGap < lineSize) {
+		drawV(numParticles, lambda, c);
+		double result = thinBrigde(lineSize, startingGap);
+		if (result < bestResult) {
+			bestResult = result;
+		}
+		removeParticles();
+		startingGap++;
+	}
+
+	optimalWeightedPerimeter = bestResult;
 }
 
 void ShortcutBridgingSystem::drawZTest(int numParticles, double lambda, double c) {
@@ -407,8 +418,8 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
 
 	switch (shape) {
 	case Shape::V:
-		drawTest(numParticles, lambda, c);
-		//drawV(numParticles, lambda, c);
+		getOptimalV(numParticles, lambda, c);
+		drawV(numParticles, lambda, c);
 		break;
 	case Shape::Z:
         drawZTest(numParticles, lambda, c);
@@ -430,11 +441,20 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
 	case Shape::VObstacle:
 		drawVObstacles(numParticles, lambda, c);
 		break;
-    }
+	}
 }
 
 bool ShortcutBridgingSystem::hasTerminated() const
 {
+	size_t size = getMeasure("Weighted measure")._history.size();
+	if (size < 1) {
+		return false;
+	}
+	double measure = getMeasure("Weighted measure")._history[size - 1];
+
+	if (measure <= optimalWeightedPerimeter * 1.08) {
+		return true;
+	}
 	return false;
 }
 
@@ -825,6 +845,113 @@ double ShortcutBridgingSystem::thickBridge(int lineSize, int maxGapSize)
 	double gapPerim = getMeasure("Gap Perimeter").calculate();
 
 	return (perim + (c - 1) * gapPerim);
+}
+
+double ShortcutBridgingSystem::thinBrigde(int lineSize, int gapSize)
+{
+	int topNodes = 3;
+	int topNodesLeft = 3;
+
+	int gapSizeInBetweenTopNodes = -1;
+	bool goEast = true;
+
+	Node startNode = Node(-1, lineSize);
+	Node gapStarts = Node(1, lineSize - 2 - (gapSize - 1));
+
+	// Create bridge.
+	for (int i = gapSize; i > 0; i--) {
+		moveParticle(startNode, gapStarts);
+		topNodesLeft--;
+
+		if (topNodesLeft == 0) {
+			startNode = Node(-1, lineSize - (topNodes - 2));
+			gapSizeInBetweenTopNodes++;
+
+			goEast = true;
+
+			topNodes++;
+			topNodesLeft = 4;
+		}
+		else {
+			if (gapSizeInBetweenTopNodes > 0) {
+				goEast = thinNextStartNode(goEast, startNode, gapSizeInBetweenTopNodes, topNodesLeft);
+			}
+			else {
+				goEast = nextStartNode(goEast, topNodesLeft, startNode);
+			}
+		}
+		gapStarts = gapStarts.nodeInDir(0);
+	}
+
+	int northEast = 1;
+	int northWest = 2;
+
+	bool placeLeft = false;
+	int yMax = gapStarts.y;
+	Node fillerNodeLeft = { -2, 0 };
+	Node fillerNodeRight = { fillerNodeLeft.x + 4 + lineSize, 0 };
+
+	// Create filler.
+	while (startNode.y > gapStarts.y) {
+		if (placeLeft) {
+			moveParticle(startNode, fillerNodeLeft);
+			placeLeft = nextFillerNode(fillerNodeLeft, yMax, northEast, -1, placeLeft);
+		}
+		else {
+			moveParticle(startNode, fillerNodeRight);
+			placeLeft = nextFillerNode(fillerNodeRight, yMax, northWest, 1, placeLeft);
+		}
+		topNodesLeft--;
+
+		if (topNodesLeft == 0) {
+			startNode = Node(-1, lineSize - (topNodes - 2));
+			gapSizeInBetweenTopNodes++;
+
+			goEast = true;
+
+			topNodes++;
+			topNodesLeft = 4;
+		}
+		else {
+			if (gapSizeInBetweenTopNodes > 0) {
+				goEast = thinNextStartNode(goEast, startNode, gapSizeInBetweenTopNodes, topNodesLeft);
+			}
+			else {
+				goEast = nextStartNode(goEast, topNodesLeft, startNode);
+			}
+		}
+	}
+
+	double perim = getMeasure("Perimeter").calculate();
+	double gapPerim = getMeasure("Gap Perimeter").calculate();
+
+	return (perim + (c - 1) * gapPerim);
+}
+
+bool thinNextStartNode(bool goEast, Node& startNode, int gapSizeInBetweenTopNodes, int topNodesLeft)
+{
+	int east = 0;
+	int west = 3;
+
+	if (goEast) {
+		for (int j = 0; j < gapSizeInBetweenTopNodes; j++) {
+			startNode = startNode.nodeInDir(east);
+		}
+		if (topNodesLeft == 3) {
+			startNode = startNode.nodeInDir(east);
+			startNode = startNode.nodeInDir(east);
+		}
+		startNode = startNode.nodeInDir(east);
+		return false;
+	}
+	else {
+		for (int j = 0; j < gapSizeInBetweenTopNodes; j++) {
+			startNode = startNode.nodeInDir(west);
+		}
+		startNode = startNode.nodeInDir(west);
+		startNode = startNode.nodeInDir(west);
+		return true;
+	}
 }
 
 bool nextStartNode(bool goEast, int topNodesLeft, Node& startNode)
