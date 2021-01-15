@@ -354,7 +354,6 @@ void ShortcutBridgingSystem::getOptimalV(int numParticles, double lambda, double
 			bestResult = result;
 		}
 		removeParticles();
-		qDebug(std::to_string(result).c_str());
 		startingGap++;
 	}
 
@@ -367,13 +366,10 @@ void ShortcutBridgingSystem::getOptimalV(int numParticles, double lambda, double
 			bestResult = result;
 		}
 		removeParticles();
-		qDebug(std::to_string(result).c_str());
 		startingGap++;
 	}
 
 	optimalWeightedPerimeter = bestResult;
-
-	qDebug(std::to_string(bestResult).c_str());
 }
 
 void ShortcutBridgingSystem::drawZTest(int numParticles, double lambda, double c)
