@@ -338,7 +338,7 @@ void ShortcutBridgingSystem::drawTest(int numParticles, double lambda, double c)
     Node startNode = Node(-1, lineSize);
     Node gapStarts = Node(1, lineSize - 2 - (gapSize - 1));
 
-    while (gapSize < 20) {
+    while (gapSize < 24) {
         for (int i = gapSize; i > 0; i--) {
 
             moveParticle(startNode, gapStarts);
@@ -359,26 +359,65 @@ void ShortcutBridgingSystem::drawTest(int numParticles, double lambda, double c)
         gapSize++;
     }
 
-    Node fillerNode = { -2, 0 };
+    int northWest = 2;
+    int southEast = 5;
+
+    bool placeLeft = false;
+    int yMax = startNode.y - 1;
+    Node fillerNodeLeft = { -2, 0 };
+    Node fillerNodeRight = { fillerNodeLeft.x + 4 + lineSize, 0 };
+    while (fillerNodeRight.y < yMax) {
+        fillerNodeRight = fillerNodeRight.nodeInDir(northWest);
+    }
 
     while (topNodesLeft > 0) {
 
-        moveParticle(startNode, fillerNode);
-        topNodesLeft--;
+        if (placeLeft) {
+            moveParticle(startNode, fillerNodeLeft);
+            topNodesLeft--;
 
-        goEast = nextStartNode(goEast, topNodesLeft, startNode);
+            goEast = nextStartNode(goEast, topNodesLeft, startNode);
 
-        fillerNode.y += 1;
+            if (fillerNodeLeft.y < yMax) {
+                fillerNodeLeft.y += 1;
+            } else {
+                fillerNodeLeft.x -= 1;
+                fillerNodeLeft.y = 0;
+                placeLeft = false;
+            }
+        } else {
+            moveParticle(startNode, fillerNodeRight);
+            topNodesLeft--;
+
+            goEast = nextStartNode(goEast, topNodesLeft, startNode);
+
+            if (fillerNodeRight.y > 0) {
+                fillerNodeRight = fillerNodeRight.nodeInDir(southEast);
+            } else {
+                fillerNodeRight.x += 1;
+                while (fillerNodeRight.y < yMax) {
+                    fillerNodeRight = fillerNodeRight.nodeInDir(northWest);
+                }
+                placeLeft = true;
+            }
+        }
     }
 
+    qDebug(std::to_string(lineSize).c_str());
     double perim = getMeasure("Perimeter").calculate();
     double gapPerim = getMeasure("Gap Perimeter").calculate();
 
     qDebug(std::to_string(perim + (c - 1) * gapPerim).c_str());
 
-    //removeParticles();
+    removeParticles();
 
-    //drawV(numParticles, lambda, c);
+    drawV(numParticles, lambda, c);
+
+    qDebug(std::to_string(lineSize).c_str());
+    perim = getMeasure("Perimeter").calculate();
+    gapPerim = getMeasure("Gap Perimeter").calculate();
+
+    qDebug(std::to_string(perim + (c - 1) * gapPerim).c_str());
 }
 
 ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, double c, Shape shape)
