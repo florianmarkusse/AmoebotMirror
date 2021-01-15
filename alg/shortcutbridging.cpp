@@ -379,6 +379,15 @@ void ShortcutBridgingSystem::drawTest(int numParticles, double lambda, double c)
 	qDebug(std::to_string(bestResult).c_str());
 }
 
+void ShortcutBridgingSystem::drawZTest(int numParticles, double lambda, double c) {
+    drawZ(numParticles, lambda, c);
+
+    double perim = getMeasure("Perimeter").calculate();
+    double gapPerim = getMeasure("Gap Perimeter").calculate();
+    qDebug(std::to_string(perim).c_str());
+    qDebug(std::to_string(gapPerim).c_str());
+}
+
 ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, double c, Shape shape)
 	: c(c)
 {
@@ -413,7 +422,7 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
 	case Shape::VObstacle:
 		drawVObstacles(numParticles, lambda, c);
 		break;
-	}
+    }
 }
 
 bool ShortcutBridgingSystem::hasTerminated() const
