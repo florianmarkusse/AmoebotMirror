@@ -433,7 +433,6 @@ void ShortcutBridgingSystem::getOptimalHexagon(int numParticles, double lambda, 
     }
 
     optimalWeightedPerimeter = bestResult;
-    qDebug(std::to_string(optimalWeightedPerimeter).c_str());
 
     removeParticles();
 }
