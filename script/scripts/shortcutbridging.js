@@ -14,7 +14,7 @@ let lowNumParticles = 20;
 let highNumParticles = 100;
 let numParticlesIncrement = 10;
 
-let lowLambda = 3.0;
+let lowLambda = 3.5;
 let highLambda = 5.0;
 let lambdaIncrement = 0.5;
 
