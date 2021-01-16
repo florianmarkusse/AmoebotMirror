@@ -106,7 +106,8 @@ private:
     double thickBridge(int lineSize, int maxGapSize);
     double thinBrigde(int lineSize, int gapSize);
 
-    double middleLine(int totalParticles, const Node& leftAnchorNode, const Node& rightAnchorNode, double lambda);
+    double middleLineHexagon(int totalParticles, const Node& leftAnchorNode, const Node& rightAnchorNode, double lambda);
+    double drawTopHexagon(int totalParticles, const Node& leftAnchorNode, const Node& rightAnchorNode, int startSideLength, double lambda, int sideLengthHexa);
 
     double optimalWeightedPerimeter = 0;
     int terminateEveryXActivations = -1;
