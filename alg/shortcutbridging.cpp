@@ -376,34 +376,92 @@ void ShortcutBridgingSystem::drawZTest(int numParticles, double lambda, double c
     drawZ(numParticles, lambda, c);
     removeParticles(false);
 
-    int lineSize = (numParticles - 13) / 6;
+    int lineSize = (numParticles - 13) / 6 + 2;
     int originalDir = 1; // NorthEast
 
-    Node startNode(-1,0);
-    Node endNode(lineSize + 2, lineSize + 8);
-    insert(new ShortcutBridgingParticle(Node(startNode.x, startNode.y), -1, randDir(), *this, lambda, c));
-    insert(new ShortcutBridgingParticle(Node(endNode.x, endNode.y), -1, randDir(), *this, lambda, c));
+    // Set a high value for bestResult. This value should be higher than any metric result.
+    double bestResult = numParticles * numParticles * numParticles * c * c;
+    int bestI = 0;
+    for (int i = 0; i < lineSize + 1; i++) {
+        Node startNode;
+        Node endNode;
+        std::vector<Node> candidates;
+        for (int j = 0; j < i; j++) {
+            insert(new ShortcutBridgingParticle(Node(-1,j), -1, randDir(), *this, lambda, c));
+            insert(new ShortcutBridgingParticle(Node(0,j), -1, randDir(), *this, lambda, c));
+            insert(new ShortcutBridgingParticle(Node(lineSize + 2, lineSize + 8 - j), -1, randDir(), *this, lambda, c));
+            insert(new ShortcutBridgingParticle(Node(lineSize + 1, lineSize + 8 - j), -1, randDir(), *this, lambda, c));
+        }
+        startNode = Node(-1,i);
+        endNode = Node(lineSize + 2, lineSize + 8 - i);
+        insert(new ShortcutBridgingParticle(Node(startNode.x, startNode.y), -1, randDir(), *this, lambda, c));
+        insert(new ShortcutBridgingParticle(Node(endNode.x, endNode.y), -1, randDir(), *this, lambda, c));
 
-    int particlesRemaining = numParticles - 2;
-    Node drawNode = startNode.nodeTowardsNode(endNode);
-    Node endDrawNode = endNode.nodeTowardsNode(startNode);
-    // Draw line from start to end
-    while (drawNode.nodeTowardsNode(endDrawNode) != endDrawNode) {
+        int particlesRemaining = numParticles - 2 - 4*i;
+
+        Node drawNode = startNode.nodeTowardsNode(endNode);
+        Node endDrawNode = endNode.nodeTowardsNode(startNode);
+        // Draw line from start to end
+        while (drawNode.nodeTowardsNode(endDrawNode) != endDrawNode) {
+            insert(new ShortcutBridgingParticle(Node(drawNode.x, drawNode.y), -1, randDir(), *this, lambda, c));
+            --particlesRemaining;
+            candidates.push_back(Node(drawNode.x+1, drawNode.y));
+            candidates.push_back(Node(drawNode.x, drawNode.y+1));
+            candidates.push_back(Node(drawNode.x-1, drawNode.y+1));
+            candidates.push_back(Node(drawNode.x-1, drawNode.y));
+            candidates.push_back(Node(drawNode.x, drawNode.y-1));
+            candidates.push_back(Node(drawNode.x+1, drawNode.y-1));
+            insert(new ShortcutBridgingParticle(Node(endDrawNode.x, endDrawNode.y), -1, randDir(), *this, lambda, c));
+            --particlesRemaining;
+            candidates.push_back(Node(endDrawNode.x+1, endDrawNode.y));
+            candidates.push_back(Node(endDrawNode.x, endDrawNode.y+1));
+            candidates.push_back(Node(endDrawNode.x-1, endDrawNode.y+1));
+            candidates.push_back(Node(endDrawNode.x-1, endDrawNode.y));
+            candidates.push_back(Node(endDrawNode.x, endDrawNode.y-1));
+            candidates.push_back(Node(endDrawNode.x+1, endDrawNode.y-1));
+            Node oldDrawNode = drawNode;
+            drawNode = drawNode.nodeTowardsNode(endDrawNode);
+            endDrawNode = endDrawNode.nodeTowardsNode(oldDrawNode);
+        }
         insert(new ShortcutBridgingParticle(Node(drawNode.x, drawNode.y), -1, randDir(), *this, lambda, c));
-        insert(new ShortcutBridgingParticle(Node(endDrawNode.x, endDrawNode.y), -1, randDir(), *this, lambda, c));
-        Node oldDrawNode = drawNode;
-        drawNode = drawNode.nodeTowardsNode(endDrawNode);
-        endDrawNode = endDrawNode.nodeTowardsNode(oldDrawNode);
-    }
-    insert(new ShortcutBridgingParticle(Node(drawNode.x, drawNode.y), -1, randDir(), *this, lambda, c));
-    if (drawNode != endDrawNode) {
-        insert(new ShortcutBridgingParticle(Node(endDrawNode.x, endDrawNode.y), -1, randDir(), *this, lambda, c));
+        --particlesRemaining;
+        if (drawNode != endDrawNode) {
+            insert(new ShortcutBridgingParticle(Node(endDrawNode.x, endDrawNode.y), -1, randDir(), *this, lambda, c));
+            --particlesRemaining;
+        }
+
+        while (particlesRemaining > 0) {
+            Node candidate = candidates.front();
+            if (particleMap.find(candidate) == particleMap.end()) {
+                insert(new ShortcutBridgingParticle(candidate, -1, randDir(), *this, lambda, c));
+                --particlesRemaining;
+                candidates.push_back(Node(candidate.x+1, candidate.y));
+                candidates.push_back(Node(candidate.x, candidate.y+1));
+                candidates.push_back(Node(candidate.x-1, candidate.y+1));
+                candidates.push_back(Node(candidate.x-1, candidate.y));
+                candidates.push_back(Node(candidate.x, candidate.y-1));
+                candidates.push_back(Node(candidate.x+1, candidate.y-1));
+            }
+            candidates.erase(candidates.begin());
+        }
+
+        double perim = getMeasure("Perimeter").calculate();
+        double gapPerim = getMeasure("Gap Perimeter").calculate();
+
+        double result = (perim + (c - 1) * gapPerim);
+
+        if (result < bestResult) {
+            bestResult = result;
+            bestI = i;
+            qDebug(std::to_string(bestResult).c_str());
+            qDebug(std::to_string(bestI).c_str());
+        }
+
+        removeParticles(false);
     }
 
-    double perim = getMeasure("Perimeter").calculate();
-    double gapPerim = getMeasure("Gap Perimeter").calculate();
-//    qDebug(std::to_string(perim).c_str());
-//    qDebug(std::to_string(gapPerim).c_str());
+    // Todo use optimal value.
+    optimalWeightedPerimeter = bestResult;
 }
 
 ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, double c, Shape shape)
@@ -423,7 +481,8 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
 		break;
 	case Shape::Z:
         drawZTest(numParticles, lambda, c);
-//		drawZ(numParticles, lambda, c);
+        removeParticles();
+        drawZ(numParticles, lambda, c);
 		break;
 	case Shape::Hexagon:
 		drawHexagon(numParticles, lambda, c);
@@ -452,7 +511,7 @@ bool ShortcutBridgingSystem::hasTerminated() const
 	}
 	double measure = getMeasure("Weighted measure")._history[size - 1];
 
-	if (measure <= optimalWeightedPerimeter * 1.08) {
+    if (measure <= optimalWeightedPerimeter * 0.8) {
 		return true;
 	}
 	return false;
@@ -567,7 +626,7 @@ void ShortcutBridgingSystem::drawVBigIslands(int numParticles, double lambda, do
 void ShortcutBridgingSystem::drawZ(int numParticles, double lambda, double c)
 {
 	// Draw v on its head.
-	int lineSize = (numParticles - 13) / 6;
+    int lineSize = (numParticles - 13) / 6 + 2;
 	int originalDir = 1; // NorthEast
 	for (int d = 0; d < 10; d++) {
 		Node boundNode(-1 * d, 0);

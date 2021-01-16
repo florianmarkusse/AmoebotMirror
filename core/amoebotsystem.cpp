@@ -4,6 +4,7 @@
 
 #include "core/amoebotsystem.h"
 
+#include <QDebug>
 #include <QDateTime>
 #include <QtGlobal>
 
@@ -98,29 +99,31 @@ const std::deque<Object*>& AmoebotSystem::getObjects() const
 
 void AmoebotSystem::insert(AmoebotParticle* particle)
 {
-    Q_ASSERT(particleMap.find(particle->head) == particleMap.end());
+    if(particleMap.find(particle->head) != particleMap.end()){
+        std::string str = "Cannot insert particle at " + std::to_string(particle->head.x) + "," + std::to_string(particle->head.y);
+        qDebug(str.c_str());
+    } else {
+        auto foundObject = objectMap.find(particle->head);
+        bool isInsertableOnObject = false;
+        if (foundObject == objectMap.end()) {
+            isInsertableOnObject = true;
+        } else if (foundObject->second->_isTraversable) {
+            isInsertableOnObject = true;
+        }
+        Q_ASSERT(isInsertableOnObject);
 
-    auto foundObject = objectMap.find(particle->head);
-    bool isInsertableOnObject = false;
-    if (foundObject == objectMap.end()) {
-        isInsertableOnObject = true;
-    } else if (foundObject->second->_isTraversable) {
-        isInsertableOnObject = true;
-    }
-    Q_ASSERT(isInsertableOnObject);
+        Q_ASSERT(!particle->isExpanded() || particleMap.find(particle->tail()) == particleMap.end());
 
-    Q_ASSERT(!particle->isExpanded() || particleMap.find(particle->tail()) == particleMap.end());
-
-    particles.push_back(particle);
-    particleMap[particle->head] = particle;
-    if (particle->isExpanded()) {
-        particleMap[particle->tail()] = particle;
+        particles.push_back(particle);
+        particleMap[particle->head] = particle;
+        if (particle->isExpanded()) {
+            particleMap[particle->tail()] = particle;
+        }
     }
 }
 
 void AmoebotSystem::insert(Object* object)
 {
-
     Q_ASSERT(objectMap.find(object->_node) == objectMap.end());
     Q_ASSERT(particleMap.find(object->_node) == particleMap.end());
 
