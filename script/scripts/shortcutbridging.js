@@ -8,13 +8,13 @@ let rawRunDataLocation = 'runs\\shortcutbridging\\raw\\shape';
 let summaryDataLocation = 'runs\\shortcutbridging\\summary.csv';
 
 let runsPerExperiment = 1;
-let shape = 0; // Goes from 0 up until 6.
+let shape = 2; // Goes from 0 up until 6.
 
 let lowNumParticles = 20;
 let highNumParticles = 100;
 let numParticlesIncrement = 10;
 
-let lowLambda = 3.0;
+let lowLambda = 3.5;
 let highLambda = 5.0;
 let lambdaIncrement = 0.5;
 
@@ -25,7 +25,7 @@ let cIncrement = 0.05;
 let summaryHeader = `runs,numParticles,lambda,c,shape,Avg rounds,Avg activations,Avg moves,Avg perimeter,Avg gap perimeter,Avg weighted measure`;
 writeToFile(summaryDataLocation, summaryHeader + '\n');
 
-for (; shape < 1; shape++) {
+for (; shape < 3; shape++) {
     for (var numParticles = lowNumParticles; numParticles <= highNumParticles; numParticles += numParticlesIncrement) {
         for (var lambda = lowLambda; lambda <= highLambda; lambda += lambdaIncrement) {
             for (var c = lowC; c <= highC; c += cIncrement) {
