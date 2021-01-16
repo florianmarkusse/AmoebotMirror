@@ -498,8 +498,8 @@ bool ShortcutBridgingSystem::hasTerminated() const
     // alpha values
     // for V: 1.08
     // for Z: ---
-    // for Hexagon: 2
-    if (measure <= optimalWeightedPerimeter * 2) {
+    // for Hexagon: 1.5
+    if (measure <= optimalWeightedPerimeter * 1.5) {
         return true;
     }
     return false;
