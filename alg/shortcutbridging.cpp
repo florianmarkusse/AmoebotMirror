@@ -397,10 +397,10 @@ void ShortcutBridgingSystem::getOptimalHexagon(int numParticles, double lambda, 
     removeParticles(false);
 
     int sideLength = 2;
-    int result = 6 * sideLength + 6 * (sideLength - 1);
-    while (result < numParticles) {
+    int resultingParticleSize = 6 * sideLength + 6 * (sideLength - 1);
+    while (resultingParticleSize < numParticles) {
         sideLength++;
-        result = 6 * sideLength + 6 * (sideLength - 1);
+        resultingParticleSize = 6 * sideLength + 6 * (sideLength - 1);
     }
     sideLength--;
 
@@ -415,11 +415,27 @@ void ShortcutBridgingSystem::getOptimalHexagon(int numParticles, double lambda, 
 
     int totalParticles = sideLength * 6 + (sideLength + 1) * 6;
 
-    // parameter
-    int startSideLength = sideLength + 1;
+    double bestResult = UINT_MAX;
 
-    drawTopHexagon(totalParticles, leftAnchorNode, rightAnchorNode,
-        startSideLength, lambda, sideLength);
+    double result = middleLineHexagon(totalParticles, leftAnchorNode, rightAnchorNode, lambda);
+    removeParticles(false);
+    if (result < bestResult) {
+        bestResult = result;
+    }
+
+    for (int startSideLength = 1; startSideLength <= sideLength + 1; startSideLength++) {
+        result = drawTopHexagon(totalParticles, leftAnchorNode, rightAnchorNode,
+            startSideLength, lambda, sideLength);
+        removeParticles(false);
+        if (result < bestResult) {
+            bestResult = result;
+        }
+    }
+
+    optimalWeightedPerimeter = bestResult;
+    qDebug(std::to_string(optimalWeightedPerimeter).c_str());
+
+    removeParticles();
 }
 
 ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, double c, Shape shape)
@@ -443,7 +459,7 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
         break;
     case Shape::Hexagon:
         getOptimalHexagon(numParticles, lambda, c);
-        //drawHexagon(numParticles, lambda, c);
+        drawHexagon(numParticles, lambda, c);
         break;
     case Shape::HexagonIsland:
         terminateEveryXActivations = 2000000;
@@ -480,7 +496,11 @@ bool ShortcutBridgingSystem::hasTerminated() const
     }
     double measure = getMeasure("Weighted measure")._history[size - 1];
 
-    if (measure <= optimalWeightedPerimeter * 1.08) {
+    // alpha values
+    // for V: 1.08
+    // for Z: ---
+    // for Hexagon: 2
+    if (measure <= optimalWeightedPerimeter * 2) {
         return true;
     }
     return false;
