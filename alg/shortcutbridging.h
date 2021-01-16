@@ -82,7 +82,7 @@ public:
     // Because this algorithm never terminates, this simply returns false.
     virtual bool hasTerminated() const;
 
-    const double c;
+    double c;
 
 private:
     void drawZ(int numParticles, double lambda, double c);
@@ -98,11 +98,15 @@ private:
 
     void getOptimalV(int numParticles, double lambda, double c);
     void drawZTest(int numParticles, double lambda, double c);
+    void getOptimalHexagon(int numParticles, double lambda, double c);
 
     void moveParticle(const Node& startNode, const Node& endNode);
+    int createLineOfParticles(const Node& startNode, const Node& endNode, double lambda);
 
     double thickBridge(int lineSize, int maxGapSize);
     double thinBrigde(int lineSize, int gapSize);
+
+    double middleLine(int totalParticles, const Node& leftAnchorNode, const Node& rightAnchorNode, double lambda);
 
     double optimalWeightedPerimeter = 0;
     int terminateEveryXActivations = -1;

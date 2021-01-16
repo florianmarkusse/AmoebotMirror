@@ -1,5 +1,12 @@
 #include "alg/shortcutbridging.h"
 
+int east = 0;
+int northEast = 1;
+int northWest = 2;
+int west = 3;
+int southWest = 4;
+int southEast = 5;
+
 bool nextStartNode(bool goEast, int topNodesLeft, Node& startNode);
 void nextGapStarts(int i, int gapSize, Node& gapStarts);
 bool nextFillerNode(Node& fillerNode, int yMax, int diagonalDirection, int xDirection, bool placeLeft);
@@ -384,6 +391,103 @@ void ShortcutBridgingSystem::drawZTest(int numParticles, double lambda, double c
     //    qDebug(std::to_string(gapPerim).c_str());
 }
 
+void ShortcutBridgingSystem::getOptimalHexagon(int numParticles, double lambda, double c)
+{
+    drawHexagon(numParticles, lambda, c);
+    removeParticles(false);
+
+    int sideLength = 2;
+    int result = 6 * sideLength + 6 * (sideLength - 1);
+    while (result < numParticles) {
+        sideLength++;
+        result = 6 * sideLength + 6 * (sideLength - 1);
+    }
+    sideLength--;
+
+    Node leftAnchorNode = { 0, 0 };
+    Node rightAnchorNode = { sideLength, 0 };
+    for (int i = 0; i < sideLength; i++) {
+        leftAnchorNode = leftAnchorNode.nodeInDir(northWest);
+        rightAnchorNode = rightAnchorNode.nodeInDir(northEast);
+    }
+    leftAnchorNode = leftAnchorNode.nodeInDir(west);
+    rightAnchorNode = rightAnchorNode.nodeInDir(east);
+
+    int totalParticles = sideLength * 6 + (sideLength + 1) * 6;
+
+    middleLine(totalParticles, leftAnchorNode, rightAnchorNode, lambda);
+    /*
+    // Widest line
+    int iterations = 0;
+
+    while (totalParticles > 0) {
+        Node leftUpperNode = Node(leftAnchorNode);
+        Node rightUpperNode = Node(rightAnchorNode);
+        Node leftLowerNode = Node(leftAnchorNode);
+        Node rightLowerNode = Node(rightAnchorNode);
+
+        if (iterations == 0) {
+            for (int i = 0; i < iterations; i++) {
+                leftUpperNode = leftUpperNode.nodeInDir(northEast);
+                rightUpperNode = rightUpperNode.nodeInDir(northWest);
+            }
+            totalParticles -= createLineOfParticles(leftUpperNode, rightUpperNode, lambda);
+        } else {
+            for (int i = 0; i < iterations; i++) {
+                leftUpperNode = leftUpperNode.nodeInDir(northEast);
+                rightUpperNode = rightUpperNode.nodeInDir(northWest);
+                leftLowerNode = leftLowerNode.nodeInDir(southEast);
+                rightLowerNode = rightLowerNode.nodeInDir(southWest);
+            }
+            int particlesOnLine = leftUpperNode.distanceBetween(rightUpperNode) + 1;
+
+            // upper part.
+            if (particlesOnLine > totalParticles) {
+                int steps = particlesOnLine - totalParticles;
+                while (steps > 0) {
+                    rightUpperNode = rightUpperNode.nodeInDir(west);
+                    steps--;
+                }
+            }
+            totalParticles -= createLineOfParticles(leftUpperNode, rightUpperNode, lambda);
+
+            // lower part.
+            if (totalParticles > 0) {
+                if (particlesOnLine > totalParticles) {
+                    int steps = particlesOnLine - totalParticles;
+                    while (steps > 0) {
+                        rightUpperNode = rightLowerNode.nodeInDir(west);
+                        steps--;
+                    }
+                }
+                totalParticles -= createLineOfParticles(leftLowerNode, rightLowerNode, lambda);
+            }
+        }
+
+        iterations++;
+    }
+    */
+
+    /*
+    for (int i = 0; i < 6; i++) {
+        Node node(0, 0 - i);
+        for (int j = 0; j < 6; j++) {
+            for (int z = 0; z < x - 1 + i; z++) {
+                if (i == 1 && (j == 2 || j == 5) && z == 0) {
+                    insert(new Object(node, true, true));
+                } else {
+                    insert(new Object(node, true));
+                }
+                if (i < 2) {
+                    insert(new ShortcutBridgingParticle(Node(node.x, node.y), -1, randDir(), *this, lambda, c));
+                }
+                node = node.nodeInDir(j);
+            }
+        }
+    }
+    */
+}
+
 ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, double c, Shape shape)
     : c(c)
 {
@@ -404,7 +508,8 @@ ShortcutBridgingSystem::ShortcutBridgingSystem(int numParticles, double lambda, 
         //		drawZ(numParticles, lambda, c);
         break;
     case Shape::Hexagon:
-        drawHexagon(numParticles, lambda, c);
+        getOptimalHexagon(numParticles, lambda, c);
+        //drawHexagon(numParticles, lambda, c);
         break;
     case Shape::HexagonIsland:
         terminateEveryXActivations = 2000000;
@@ -795,9 +900,6 @@ double ShortcutBridgingSystem::thickBridge(int lineSize, int maxGapSize)
         gapSize++;
     }
 
-    int northEast = 1;
-    int northWest = 2;
-
     bool placeLeft = false;
     int yMax = startNode.y - 1;
     Node fillerNodeLeft = { -2, 0 };
@@ -860,9 +962,6 @@ double ShortcutBridgingSystem::thinBrigde(int lineSize, int gapSize)
         gapStarts = gapStarts.nodeInDir(0);
     }
 
-    int northEast = 1;
-    int northWest = 2;
-
     bool placeLeft = false;
     int yMax = gapStarts.y;
     Node fillerNodeLeft = { -2, 0 };
@@ -904,8 +1003,6 @@ double ShortcutBridgingSystem::thinBrigde(int lineSize, int gapSize)
 
 bool thinNextStartNode(bool goEast, Node& startNode, int gapSizeInBetweenTopNodes, int topNodesLeft)
 {
-    int east = 0;
-    int west = 3;
 
     if (goEast) {
         for (int j = 0; j < gapSizeInBetweenTopNodes; j++) {
@@ -929,8 +1026,6 @@ bool thinNextStartNode(bool goEast, Node& startNode, int gapSizeInBetweenTopNode
 
 bool nextStartNode(bool goEast, int topNodesLeft, Node& startNode)
 {
-    int east = 0;
-    int west = 3;
     if (goEast) {
         for (int j = 0; j < topNodesLeft; j++) {
             startNode = startNode.nodeInDir(east);
@@ -946,10 +1041,6 @@ bool nextStartNode(bool goEast, int topNodesLeft, Node& startNode)
 
 void nextGapStarts(int i, int gapSize, Node& gapStarts)
 {
-    int east = 0;
-    int west = 3;
-    int southWest = 4;
-    int southEast = 5;
 
     if (i == 1) {
         if (gapSize % 2 == 1) {
@@ -978,4 +1069,80 @@ bool nextFillerNode(Node& fillerNode, int yMax, int diagonalDirection, int xDire
         }
         return !placeLeft;
     }
+}
+
+int ShortcutBridgingSystem::createLineOfParticles(const Node& startNode, const Node& endNode, double lambda)
+{
+    int numParticlesInserted = 0;
+
+    Node node = Node(startNode);
+    while (node != endNode) {
+        insert(new ShortcutBridgingParticle(node, -1, randDir(), *this, lambda, c));
+        numParticlesInserted++;
+        node = node.nodeTowardsNode(endNode);
+    }
+    insert(new ShortcutBridgingParticle(node, -1, randDir(), *this, lambda, c));
+    numParticlesInserted++;
+
+    return numParticlesInserted;
+}
+
+double ShortcutBridgingSystem::middleLine(
+    int totalParticles, const Node& leftAnchorNode, const Node& rightAnchorNode,
+    double lambda)
+{
+    // Widest line
+    int iterations = 0;
+
+    while (totalParticles > 0) {
+        Node leftUpperNode = Node(leftAnchorNode);
+        Node rightUpperNode = Node(rightAnchorNode);
+        Node leftLowerNode = Node(leftAnchorNode);
+        Node rightLowerNode = Node(rightAnchorNode);
+
+        if (iterations == 0) {
+            for (int i = 0; i < iterations; i++) {
+                leftUpperNode = leftUpperNode.nodeInDir(northEast);
+                rightUpperNode = rightUpperNode.nodeInDir(northWest);
+            }
+            totalParticles -= createLineOfParticles(leftUpperNode, rightUpperNode, lambda);
+        } else {
+            for (int i = 0; i < iterations; i++) {
+                leftUpperNode = leftUpperNode.nodeInDir(northEast);
+                rightUpperNode = rightUpperNode.nodeInDir(northWest);
+                leftLowerNode = leftLowerNode.nodeInDir(southEast);
+                rightLowerNode = rightLowerNode.nodeInDir(southWest);
+            }
+            int particlesOnLine = leftUpperNode.distanceBetween(rightUpperNode) + 1;
+
+            // upper part.
+            if (particlesOnLine > totalParticles) {
+                int steps = particlesOnLine - totalParticles;
+                while (steps > 0) {
+                    rightUpperNode = rightUpperNode.nodeInDir(west);
+                    steps--;
+                }
+            }
+            totalParticles -= createLineOfParticles(leftUpperNode, rightUpperNode, lambda);
+
+            // lower part.
+            if (totalParticles > 0) {
+                if (particlesOnLine > totalParticles) {
+                    int steps = particlesOnLine - totalParticles;
+                    while (steps > 0) {
+                        rightUpperNode = rightLowerNode.nodeInDir(west);
+                        steps--;
+                    }
+                }
+                totalParticles -= createLineOfParticles(leftLowerNode, rightLowerNode, lambda);
+            }
+        }
+
+        iterations++;
+    }
+
+    double perim = getMeasure("Perimeter").calculate();
+    double gapPerim = getMeasure("Gap Perimeter").calculate();
+
+    return (perim + (c - 1) * gapPerim);
 }
